@@ -3,6 +3,10 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="UTF-8" />
+    <meta name="description" content="一个花牌/花札游戏的记分工具">
+    <meta name="theme-color" content="#2F3BA2" />
+    <link rel="manifest" href="/manifest.json">
+
     <style>
         body {
             margin: auto;
@@ -291,11 +295,18 @@
 			</span>
 		</div>
 		<div class="moreButton">
-			<button type="button"
+            <button type="button"
                     class="resetButton"
                     onclick="Reset()">
 			重置
-			</button>
+            </button>
+            <button id="btnInstall"
+                    aria-label="Install" 
+                    hidden
+                    type="button"
+                    class="resetButton">
+            添加到桌面
+            </button>
 			<span>
 			更多功能按钮…
 			</span>
@@ -384,6 +395,17 @@
         document.getElementById("messageBox").textContent = "本轮结算成功！";
     }
 </script>
-
+<script>
+    // Register service worker.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then((reg) => {
+              // console.log('Service worker registered.', reg);
+            });
+      });
+    }
+</script>
+<script src="/scripts/install.js"></script>
 </body>
 </html>
