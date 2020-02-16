@@ -6,110 +6,7 @@
     <meta name="description" content="一个花牌/花札游戏的记分工具">
     <meta name="theme-color" content="#2F3BA2" />
     <link rel="manifest" href="/manifest.json">
-
-    <style>
-        body {
-            margin: auto;
-            color: black;
-        }
-        a {
-            text-decoration: none;
-            margin: 0 auto;
-        }
-        ul {
-            margin: auto;
-        }
-        li {
-            margin: auto;
-        }
-        .numText {
-            float: left;
-            width: 7%;
-            height: 100%;
-            text-align: center;
-            margin: 0;
-            padding: 0; 
-            line-height: 200%;
-        }
-        .titleText {
-            float: left;
-            width: 31%;
-            height: 100%;
-            text-align: center;
-            margin: 0;
-            padding: 0; 
-            line-height: 200%;
-        }
-        .nameBlock {
-            float: left;
-            width: 31%;
-            height: 100%;
-            text-align: center;
-            margin: 0;
-            padding: 0; 
-            line-height: 200%;
-        }
-        .inputText {
-            width: 95%;
-            height: 2em;
-            margin: 0;
-            padding: 0; 
-			text-align: center;
-        }
-        .blockDark {
-            background: silver;
-            height: 2em;
-            margin: 0;
-            padding: 0; 
-        }
-        .blockLight {
-            background-color: #DCDCDC;
-            height: 2em;
-            margin: 0;
-            padding: 0; 
-        }
-        .buttonBlockGroup {
-            text-align: center;
-			line-height: 200%;
-			margin: 0;
-			padding: 0;
-			height: 8em;
-        }
-        .buttonBlockLeft {
-            float: left;
-			line-height: 400%;
-			width: 69.5%;
-			height: 100%;
-        }
-        .buttonBlockRight {
-            float: right;
-			width: 30.5%;
-			height: 8em;
-			margin: 0;
-			padding: 0;
-			background: #006600;
-        }
-        .settleAccountButton {
-            height: 100%;
-			width: 100%;
-			margin: 0;
-			background: #009900;
-        }
-        .messageBox {
-            height: 50%;
-			width: 100%;
-        }
-        .moreButton {
-            height: 50%;
-			background: #F5F5F5;
-			width: 100%;
-        }
-        .resetButton {
-            height: 100%;
-			width: 20%;
-            float: left;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="./styles/styles.css" />
 </head>
 <body>
 
@@ -300,6 +197,12 @@
                     onclick="Reset()">
 			重置
             </button>
+            <button id="btnPwaSupport"
+                    aria-label="PwaTest" 
+                    type="button"
+                    class="resetButton">
+            检测是否支持PWA
+            </button>
             <button id="btnInstall"
                     aria-label="Install" 
                     hidden
@@ -352,60 +255,7 @@
 </div>
 </form>
 
-<script>
-    // 重置累计分数，本轮得分
-    function Reset()
-    {
-        var curScore = "curScore";
-        var sumScore = "sumScore";
-        for (i = 1; i <= 6; i++)
-        {
-            document.getElementById(sumScore + i).textContent = "0";
-            document.getElementById(curScore + i).value = "";
-        }
-    }
-
-    // 结算本轮得分到累计得分
-    function settleAccountScore()
-    {
-        var curScore = "curScore";
-        var sumScore = "sumScore";
-        // 检验本轮得分是否正确
-        var curSum = 0;
-        for (i = 1; i <= 6; i++)
-        {
-            curSum += Number(document.getElementById(curScore + i).value);
-        }
-        if (curSum != 0)
-        {
-            // 本轮输入数据有错误，在消息框提示
-            document.getElementById("messageBox").textContent = "本轮输入数据有误，请检查！" + curSum;
-            return;
-        }
-        // 将本轮得分累加到累计得分中
-        for (i = 1; i <= 6; i++)
-        {
-            var sumScoreTemp = document.getElementById(sumScore + i).textContent;
-            var curScoreTemp = document.getElementById(curScore + i).value;
-            sumScoreTemp = Number(sumScoreTemp) + Number(curScoreTemp);
-            document.getElementById(sumScore + i).textContent = sumScoreTemp;
-            // 清除本轮得分
-            document.getElementById(curScore + i).value = "";
-        }
-        document.getElementById("messageBox").textContent = "本轮结算成功！";
-    }
-</script>
-<script>
-    // Register service worker.
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then((reg) => {
-              // console.log('Service worker registered.', reg);
-            });
-      });
-    }
-</script>
-<script src="/scripts/install.js"></script>
+<script src="./scripts/app.js"></script>
+<script src="./scripts/install.js"></script>
 </body>
 </html>

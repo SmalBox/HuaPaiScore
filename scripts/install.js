@@ -1,3 +1,8 @@
+// 通过监听window的beforeinstallprompt事件，当触发事件则将事件保存&并显示创建按钮
+// 当显示创建按钮，则表示事件 返回值 成功被获取
+// 点击创建按钮，调用事件返回值的prompt()函数调出创建对话框
+// 返回值的userChoice.outcome 值是否为accepted 判断用户点击了T Or F
+
 let deferredInstallPrompt = null;
 const installButton = document.getElementById('btnInstall');
 installButton.addEventListener('click', installPWA);
@@ -9,7 +14,6 @@ function saveBeforeInstallPromptEvent(evt) {
   // CODELAB: Add code to save event & show the install button.
   deferredInstallPrompt = evt;
   installButton.removeAttribute('hidden');
-  console.log('显示创建应用按钮');
 }
 
 function installPWA(evt) {

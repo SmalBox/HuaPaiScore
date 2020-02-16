@@ -1,0 +1,101 @@
+body {
+    margin: auto;
+    color: black;
+}
+a {
+    text-decoration: none;
+    margin: 0 auto;
+}
+ul {
+    margin: auto;
+}
+li {
+    margin: auto;
+}
+.numText {
+    float: left;
+    width: 7%;
+    height: 100%;
+    text-align: center;
+    margin: 0;
+    padding: 0; 
+    line-height: 200%;
+}
+.titleText {
+    float: left;
+    width: 31%;
+    height: 100%;
+    text-align: center;
+    margin: 0;
+    padding: 0; 
+    line-height: 200%;
+}
+.nameBlock {
+    float: left;
+    width: 31%;
+    height: 100%;
+    text-align: center;
+    margin: 0;
+    padding: 0; 
+    line-height: 200%;
+}
+.inputText {
+    width: 95%;
+    height: 2em;
+    margin: 0;
+    padding: 0; 
+    text-align: center;
+}
+.blockDark {
+    background: silver;
+    height: 2em;
+    margin: 0;
+    padding: 0; 
+}
+.blockLight {
+    background-color: #DCDCDC;
+    height: 2em;
+    margin: 0;
+    padding: 0; 
+}
+.buttonBlockGroup {
+    text-align: center;
+    line-height: 200%;
+    margin: 0;
+    padding: 0;
+    height: 8em;
+}
+.buttonBlockLeft {
+    float: left;
+    line-height: 400%;
+    width: 69.5%;
+    height: 100%;
+}
+.buttonBlockRight {
+    float: right;
+    width: 30.5%;
+    height: 8em;
+    margin: 0;
+    padding: 0;
+    background: #006600;
+}
+.settleAccountButton {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    background: #009900;
+}
+.messageBox {
+    height: 50%;
+    width: 100%;
+}
+.moreButton {
+    height: 50%;
+    background: #F5F5F5;
+    width: 100%;
+}
+.resetButton {
+    height: 100%;
+    width: 20%;
+    float: left;
+}

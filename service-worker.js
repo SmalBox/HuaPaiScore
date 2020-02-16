@@ -6,11 +6,14 @@ const DATA_CACHE_NAME = 'data-cache-v1';
 const FILES_TO_CACHE = [
   '/',
   '/HuaPai.html',
-  '/script/install.js',
+  '/styles/styles.css',
+  '/scripts/app.js',
+  '/scripts/install.js',
 ];
 
 self.addEventListener('install', (evt) => {
-  // CODELAB: Precache static resources here.
+  // CODELAB: Precache static resources here. 
+  // install 只执行一次
   evt.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(FILES_TO_CACHE);
