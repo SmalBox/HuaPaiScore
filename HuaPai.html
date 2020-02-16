@@ -10,239 +10,120 @@
 </head>
 <body>
 
-<!--1 软件名-->
-<div class="blockLight" style="text-align: center; line-height: 200%;">
-花牌记分器
-</div>
-
-<!--表单-->
-<form>
-<!--2 标题-->
-<div class="blockDark">
-    <div class="numText">&nbsp;</div>
-    <div class="titleText">玩家名字</div>
-    <div class="titleText" style="background-color: #AFAFAF;">累计得分</div>
-    <div class="titleText">本轮得分</div>
-</div>
-
-
-<!--3 玩家1-->
-<div class="blockLight" style="text-align: center;">
-	<!--玩家1numText-->
-    <div class="numText">1</div>
-	<!--玩家1名字输入框-->
-    <div class="nameBlock">
-        <input type="text" class="inputText">    
+    <!--标题div titleName-->
+    <div class="titleName">
     </div>
 
-	<!--玩家1总分数-->
-    <div class="nameBlock">
-        <span id="sumScore1"
-			style="text-align: center;">
-		0
-		</span>
-    </div>
-
-	<!--本轮分数输入框-->
-    <div class="nameBlock">
-        <input type="text"
-			id="curScore1"
-			class="inputText">
-    </div>
-</div>
-
-
-<!--4 玩家2-->
-<div class="blockDark" style="text-align: center;">
-	<!--玩家2numText-->
-    <div class="numText">2</div>
-	<!--玩家2名字输入框-->
-    <div class="nameBlock">
-        <input type="text" class="inputText">    
-    </div>
-
-	<!--玩家2总分数-->
-    <div class="nameBlock">
-        <span id="sumScore2"
-			style="text-align: center;">
-		0
-		</span>
-    </div>
-
-	<!--本轮分数输入框-->
-    <div class="nameBlock">
-        <input type="text"
-			id="curScore2"
-			class="inputText">
-    </div>
-</div>
+    <!--功能区div functionArea-->
+    <div class="functionArea">
+        <table class="inputTable" cellspacing="0">
+            <tr>
+                <td>玩家名字</td>
+                <td>累计得分</td>
+                <td>本轮得分</td>
+            </tr>
+            <tr>
+                <td>
+                    <!--玩家1numText-->
+                    <div class="numText">1</div>
+                    <!--玩家1名字输入框-->
+                    <div class="numNameBlock">
+                        <input type="text">    
+                    </div>
+                </td>
+                <td>
+                    <!--玩家1总分数-->
+                    <div class="scoreBlock">
+                        <span id="sumScore1"
+                            style="text-align: center;">
+                        0
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <!--本轮分数输入框-->
+                    <div class="scoreBlock">
+                        <input type="text"
+                            id="curScore1">
+                    </div>                   
+                </td>
+            </tr>
 
 
-<!--5 玩家3-->
-<div class="blockLight" style="text-align: center;">
-	<!--玩家3numText-->
-    <div class="numText">3</div>
-	<!--玩家3名字输入框-->
-    <div class="nameBlock">
-        <input type="text" class="inputText">    
-    </div>
+        </table>
+        <!--9 按钮组-->
+        <div class="functionBlock">
+            <div class="buttonBlockLeft">
+               <button type="button"
+                       class="functionButton"
+                       onclick="Reset()">
+                重置
+               </button>
+               <button id="btnPwaSupport"
+                       aria-label="PwaTest" 
+                       type="button"
+                       class="functionButton">
+               加速
+               </button>
+               <button id="btnInstall"
+                       aria-label="Install" 
+                       hidden
+                       type="button"
+                       class="functionButton">
+               添加到桌面
+               </button>
+            </div>
 
-	<!--玩家3总分数-->
-    <div class="nameBlock">
-        <span id="sumScore3"
-			style="text-align: center;">
-		0
-		</span>
-    </div>
-
-	<!--本轮分数输入框-->
-    <div class="nameBlock">
-        <input type="text"
-			id="curScore3"
-			class="inputText">
-    </div>
-</div>
-
-
-<!--6 玩家4-->
-<div class="blockDark" style="text-align: center;">
-	<!--玩家4numText-->
-    <div class="numText">4</div>
-	<!--玩家4名字输入框-->
-    <div class="nameBlock">
-        <input type="text" class="inputText">    
-    </div>
-
-	<!--玩家4总分数-->
-    <div class="nameBlock">
-        <span id="sumScore4"
-			style="text-align: center;">
-		0
-		</span>
-    </div>
-
-	<!--本轮分数输入框-->
-    <div class="nameBlock">
-        <input type="text"
-			id="curScore4"
-			class="inputText">
-    </div>
-</div>
-
-
-<!--7 玩家5-->
-<div class="blockLight" style="text-align: center;">
-	<!--玩家5numText-->
-    <div class="numText">5</div>
-	<!--玩家5名字输入框-->
-    <div class="nameBlock">
-        <input type="text" class="inputText">    
-    </div>
-
-	<!--玩家5总分数-->
-    <div class="nameBlock">
-        <span id="sumScore5"
-			style="text-align: center;">
-		0
-		</span>
-    </div>
-
-	<!--本轮分数输入框-->
-    <div class="nameBlock">
-        <input type="text"
-			id="curScore5"
-			class="inputText">
-    </div>
-</div>
-
-
-<!--8 玩家6-->
-<div class="blockDark" style="text-align: center;">
-	<!--玩家6numText-->
-    <div class="numText">6</div>
-	<!--玩家6名字输入框-->
-    <div class="nameBlock">
-        <input type="text" class="inputText">    
-    </div>
-
-	<!--玩家6总分数-->
-    <div class="nameBlock">
-        <span id="sumScore6"
-			style="text-align: center;">
-		0
-		</span>
-    </div>
-
-	<!--本轮分数输入框-->
-    <div class="nameBlock">
-        <input type="text"
-			id="curScore6"
-			class="inputText">
-    </div>
-</div>
-
-
-<!--9 按钮组-->
-<div class="blockLight buttonBlockGroup">
-	<div class="buttonBlockLeft">
+        	<div class="buttonBlockRight">
+                <div class="settleAccountButton"
+                     onclick="settleAccountScore()">
+                     结算得分
+                </div>
+            </div>
+        </div>
         <div id="messageBox"
              class="messageBox">
-			<span>
-				消息盒子!
-			</span>
-		</div>
-		<div class="moreButton">
-            <button type="button"
-                    class="resetButton"
-                    onclick="Reset()">
-			重置
-            </button>
-            <button id="btnPwaSupport"
-                    aria-label="PwaTest" 
-                    type="button"
-                    class="resetButton">
-            检测是否支持PWA
-            </button>
-            <button id="btnInstall"
-                    aria-label="Install" 
-                    hidden
-                    type="button"
-                    class="resetButton">
-            添加到桌面
-            </button>
-			<span>
-			更多功能按钮…
-			</span>
-		</div>
-	</div>
-	<div class="buttonBlockRight">
-		<button type="button"
-                class="settleAccountButton"
-                onclick="settleAccountScore()">
-		结算得分
-		</button>
-	</div>
-</div>
+            <span>
+                消息盒子! 信息在这里显示
+            </span>
+        </div>
+
+    </div>
+
+    <!--说明区div descriptionArea-->
+    <div class="descriptionArea">
+        <div class="huaPaiRule">
+            <!--10 规则标题-->
+            <div class="huaPaiRuleTitle">
+            花牌规则
+            </div>
+ 
+            <!--11 规则正文-->
+            <div class="huaPaiRuleText">
+            	<ul>
+            		<li>2人 手牌10，底牌8，本120</li>
+            		<li>3人 手牌7，底牌6，本80</li>
+            		<li>4人 手牌5，底牌8，本60</li>
+            		<li>5人 手牌4，底牌8，本50，＋10</li>
+            		<li>6人 手牌4，底牌8，本50，＋10，6进1</li>
+            	</ul>
+            </div>
+        </div>
+        <div class="placeholder"></div>
+    </div>
+
+    <!--底部div foot-->
+    <div class="foot">
+        <div class="footUp">
+            footUP
+        </div>
+        <div class="footDown">
+            footDown
+        </div>
+    </div>
 
 
-<!--10 规则标题-->
-<div class="blockDark" style="text-align: center; line-height: 200%;">
-花牌规则
-</div>
 
-
-<!--11 规则正文-->
-<div class="blockLight"
-	 style="line-height: 200%;
-			height: 10em;">
-	<ul style="padding-left: 18%;">
-		<li>2人 手牌10，底牌8，本120</li>
-		<li>3人 手牌7，底牌6，本80</li>
-		<li>4人 手牌5，底牌8，本60</li>
-		<li>5人 手牌4，底牌8，本50，＋10</li>
-		<li>6人 手牌4，底牌8，本50，＋10，6进1</li>
-	</ul>
-</div>
 
 <!--last 版权说明-->
 <div class="blockDark"
@@ -255,7 +136,9 @@
 </div>
 </form>
 
-<script src="./scripts/app.js"></script>
-<script src="./scripts/install.js"></script>
+<!--
+    <script src="./scripts/app.js"></script>
+    <script src="./scripts/install.js"></script>
+-->
 </body>
 </html>

@@ -1,16 +1,95 @@
 body {
-    margin: auto;
+    margin: 0;
+    padding: 0;
     color: black;
+    background-color: #900600;
 }
 a {
     text-decoration: none;
     margin: 0 auto;
 }
 ul {
-    margin: auto;
+    margin: 0 auto;
 }
 li {
     margin: auto;
+    margin-left: -1em;
+}
+input {
+    width: 100%;
+    height: 90%;
+    margin: 0 auto;
+    padding: 0;
+    text-align: center;
+    border-bottom-width: 1%;
+    border-bottom-color: #004FFF;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    background: linear-gradient(to top, #0048BB 0%, #004876 60%)
+}
+
+@media screen and (min-width: 600px) {
+    .titleName {
+        width: 70vw;
+        height: 10vh;
+        margin-top: 8vh;
+        margin-bottom: 8vh;
+        margin-left:14.5vw;
+        text-align: center;
+        background-image: url(../images/main/titleName.png);
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .titleName {
+        width: 70vw;
+        height: 10vh;
+        margin-top: 10vw;
+        margin-bottom: 10vw;
+        margin-left:14.5vw;
+        text-align: center;
+        background-image: url(../images/main/titleName.png);
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+    }
+}
+.functionArea {
+    width: 90vw;
+    margin: 0 auto;
+    background-color: #004876;
+    border-style: solid;
+    border-color: #ffca71;
+    border-width: 0.4vw;
+    border-radius: 0.2em;
+}
+.inputTable {
+    width: 94%;
+    text-align: center;
+    color: white;
+    margin: 0 auto;
+    margin-top: 4vh;
+    border-style: solid;
+    border-color: #ffca71;
+    border-width: 0.4vw;
+    border-right: none;
+    border-bottom: none;
+}
+.inputTable td {
+    width: 33.3%;
+    height: 5vh;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    border-style: solid;
+    border-color: #ffca71;
+    border-width: 0.4vw;
+    border-top: none;
+    border-left: none;
 }
 .numText {
     float: left;
@@ -19,8 +98,142 @@ li {
     text-align: center;
     margin: 0;
     padding: 0; 
+    line-height: 250%;
+}
+.numNameBlock {
+    float: left;
+    width: 93%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 250%;
+}
+.scoreBlock {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 250%;
+}
+.functionBlock {
+    width: 96%;
+    height: 8vw;
+    text-align: center;
+    color: white;
+    margin-left: 2%;
+    margin-top: 2vw;
+}
+.buttonBlockLeft {
+    overflow: auto;
+    float: left;
+    width: 50%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 400%;
+}
+.buttonBlockRight {
+    float: right;
+    width: 50%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+.settleAccountButton {
+    width: 90%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0;
+    color: white;
+    text-align: center;
+    border-style: none;
+    background-image: url(../images/main/settleAccountBtnBG.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    line-height: 8vw;
+}
+.functionButton {
+    overflow: auto;
+    float: left;
+    width: 43%;
+    height: 100%;
+    margin-left: 5%;
+    color: white;
+    border-style: solid;
+    border-radius: 2vw;
+    background-color: #004876;
+}
+.messageBox {
+    overflow: auto;
+    width: 96%;
+    height: 8vh;
+    text-align: center;
+    color: white;
+    margin-left: 2%;
+    line-height: 400%;
+}
+.descriptionArea {
+    overflow: auto;
+    width: 90vw;
+    height: 100%;
+    margin: 0 auto;
+    margin-top: 1.5em;
+    background-color: #004876;
+    border-style: solid;
+    border-color: #ffca71;
+    border-width: 0.4vw;
+    border-radius: 0.2em;   
+}
+.placeholder {
+    height: 4vw;
+}
+.huaPaiRule {
+    width: 90%;
+    margin: 0 auto;
+    margin-top: 2.5em;
+    background-color: #ffecd9;
+    border-style: solid;
+    border-color: #ffca71;
+    border-width: 0.4vw;
+    border-radius: 1em;   
+}
+.huaPaiRuleTitle {
+    width: 50%;
+    height: 7vw;
+    color: white;
+    text-align: center;
+    position: relative;
+    top: -3.8vw;
+    margin: 0 auto;
+    background-image: url(../images/main/ruleBG.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    line-height: 7vw;
+}
+.huaPaiRuleText {
+    overflow: auto;
+    width: fit-content;
+    height: 10em;
+    margin: 0 auto;
+    position: relative;
+    top: -3vw;
     line-height: 200%;
 }
+.footUp {
+    height: 2.8em;
+    margin-top: 3em;
+    background-color: #54b7fd;
+}
+.footDown {
+    height: 1.8em;
+    background-color: #34a68d;
+}
+
+
+
+
 .titleText {
     float: left;
     width: 31%;
@@ -38,13 +251,6 @@ li {
     margin: 0;
     padding: 0; 
     line-height: 200%;
-}
-.inputText {
-    width: 95%;
-    height: 2em;
-    margin: 0;
-    padding: 0; 
-    text-align: center;
 }
 .blockDark {
     background: silver;
@@ -65,30 +271,9 @@ li {
     padding: 0;
     height: 8em;
 }
-.buttonBlockLeft {
-    float: left;
-    line-height: 400%;
-    width: 69.5%;
-    height: 100%;
-}
-.buttonBlockRight {
-    float: right;
-    width: 30.5%;
-    height: 8em;
-    margin: 0;
-    padding: 0;
-    background: #006600;
-}
-.settleAccountButton {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    background: #009900;
-}
-.messageBox {
-    height: 50%;
-    width: 100%;
-}
+
+
+
 .moreButton {
     height: 50%;
     background: #F5F5F5;
