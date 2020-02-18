@@ -1,11 +1,11 @@
-# 花牌记分器 V0.1
+# 花牌记分器 V0.2
 
 ## Description
 
    - 花牌记分器用于2-6人的花牌记分
    - 主要帮助统计玩家分数，核对本轮数据
-   - 以html实现，可在线使用，也可下载离线使用
-   - [点击使用花牌记分器](https://nas.smalbox.club/HuaPai.html)
+   - 用html、css3、JavaScript实现，可在线使用，也可下载离线使用
+   - [点击使用花牌记分器](https://nas.smalbox.club/HuaPaiScore/HuaPai.html)
 
 ## Usage
 
@@ -19,3 +19,22 @@
    <br/>
    
    - 点击 **‘重置’** 可重置**累计得分**和**本轮得分**
+
+## Update
+
+   - **V0.2**
+      - **新的用户界面**
+         - 已对多平台设备进行适配(rem+js+vw/vh)
+      - **支持基本的PWA功能**
+         - 支持离线缓存加速
+         - 支持创建桌面应用(支持平台如下：)
+            - Android
+            - Chrome for Android
+            - Chrome for Windows
+            - *注：因apple限制，apple设备不支持创建应用*
+      - **项目添加部署(Deploy)脚本**
+         - 帮助修正本地环境和服务器环境路径问题
+
+   - **V0.1**
+      - **完成基本功能**
+         - **记分** 、 **结算差错** 、 **重置分数**
