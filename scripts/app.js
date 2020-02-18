@@ -1,7 +1,24 @@
+// rem自动适配设备,宽度改变时自动适配页面布局
+window.onresize = AdaptationPage;
+function AdaptationPage()
+{
+    // 适配不同页面
+    document.getElementsByTagName("html")[0].style.fontSize = (document.body.clientWidth / 1080) * 100 + "px";
+    console.log("适配页面");
+
+    //动态固定页面底部的松树pine
+    var pineL = document.getElementById("pineL");
+    var pineR = document.getElementById("pineR");
+    pineL.style.top = document.body.clientHeight - pineL.clientHeight + "px";
+    pineR.style.top = document.body.clientHeight - pineR.clientHeight + "px";
+    console.log("适配松树");
+}
+AdaptationPage();
+
 // Register service worker.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('../service-worker.js')
         .then((reg) => {
           // console.log('Service worker registered.', reg);
         });
@@ -24,6 +41,8 @@ function Reset()
         document.getElementById(sumScore + i).textContent = "0";
         document.getElementById(curScore + i).value = "";
     }
+    // 重置得分
+    document.getElementById("messageBox").textContent = "已重置所有得分!";
 }
 
 // 结算本轮得分到累计得分

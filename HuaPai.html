@@ -15,15 +15,14 @@
     <img src="./images/main/mapleLeafR.png"
          class="mapleLeafR"/>
 
-
-
     <!--标题div titleName-->
     <div class="titleName">
     </div>
-
     <!--仙鹤-->
-    <img src="./images/main/crane.png"
-         class="crane"/>
+    <div class="craneClip">
+        <img src="./images/main/crane.png"
+             class="crane"/>
+    </div>    
 
     <!--功能区div functionArea-->
     <div class="functionArea">
@@ -59,7 +58,136 @@
                     </div>                   
                 </td>
             </tr>
-
+            <tr>
+                <td>
+                    <!--玩家2numText-->
+                    <div class="numText">2</div>
+                    <!--玩家2名字输入框-->
+                    <div class="numNameBlock">
+                        <input type="text">    
+                    </div>
+                </td>
+                <td>
+                    <!--玩家2总分数-->
+                    <div class="scoreBlock">
+                        <span id="sumScore2"
+                            style="text-align: center;">
+                        0
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <!--本轮分数输入框-->
+                    <div class="scoreBlock">
+                        <input type="text"
+                            id="curScore2">
+                    </div>                   
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <!--玩家3numText-->
+                    <div class="numText">3</div>
+                    <!--玩家3名字输入框-->
+                    <div class="numNameBlock">
+                        <input type="text">    
+                    </div>
+                </td>
+                <td>
+                    <!--玩家3总分数-->
+                    <div class="scoreBlock">
+                        <span id="sumScore3"
+                            style="text-align: center;">
+                        0
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <!--本轮分数输入框-->
+                    <div class="scoreBlock">
+                        <input type="text"
+                            id="curScore3">
+                    </div>                   
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <!--玩家4numText-->
+                    <div class="numText">4</div>
+                    <!--玩家4名字输入框-->
+                    <div class="numNameBlock">
+                        <input type="text">    
+                    </div>
+                </td>
+                <td>
+                    <!--玩家4总分数-->
+                    <div class="scoreBlock">
+                        <span id="sumScore4"
+                            style="text-align: center;">
+                        0
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <!--本轮分数输入框-->
+                    <div class="scoreBlock">
+                        <input type="text"
+                            id="curScore4">
+                    </div>                   
+                </td>
+            </tr>
+             <tr>
+                <td>
+                    <!--玩家5numText-->
+                    <div class="numText">5</div>
+                    <!--玩家5名字输入框-->
+                    <div class="numNameBlock">
+                        <input type="text">    
+                    </div>
+                </td>
+                <td>
+                    <!--玩家5总分数-->
+                    <div class="scoreBlock">
+                        <span id="sumScore5"
+                            style="text-align: center;">
+                        0
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <!--本轮分数输入框-->
+                    <div class="scoreBlock">
+                        <input type="text"
+                            id="curScore5">
+                    </div>                   
+                </td>
+            </tr>       
+            <tr>
+                <td>
+                    <!--玩家6numText-->
+                    <div class="numText">6</div>
+                    <!--玩家6名字输入框-->
+                    <div class="numNameBlock">
+                        <input type="text">    
+                    </div>
+                </td>
+                <td>
+                    <!--玩家6总分数-->
+                    <div class="scoreBlock">
+                        <span id="sumScore6"
+                            style="text-align: center;">
+                        0
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <!--本轮分数输入框-->
+                    <div class="scoreBlock">
+                        <input type="text"
+                            id="curScore6">
+                    </div>                   
+                </td>
+            </tr>
 
         </table>
         <!--9 按钮组-->
@@ -120,24 +248,28 @@
             	</ul>
             </div>
         </div>
-        <div class="placeholder"></div>
     </div>
 
     <!--底部div foot-->
     <div id="foot">
         <div class="footUp">
+            <div class="lineTop50"></div>
+            <div class="lineTop60"></div>
+            <div class="lineMiddle70"></div>
+            <div class="lineBottom60"></div>
+            <div class="lineBottom50"></div>
         </div>
         <!--last 版权说明-->
         <div class="footDown">
-            <div class="pineL"></div>
-            <div class="copyright">Copyright&copy; by SmalBox</div>
-            <div class="pineR"></div>
+            <div id="pineL" class="pineL"></div>
+            <div class="copyright">
+                Copyright&copy; by <a href="https://smalbox.club">SmalBox</a>
+            </div>
+            <div id="pineR" class="pineR"></div>
         </div>
     </div>
 
-<!--
     <script src="./scripts/app.js"></script>
     <script src="./scripts/install.js"></script>
--->
 </body>
 </html>
