@@ -51,7 +51,7 @@ input {
     border-left: none;
     border-right: none;
     background: linear-gradient(to top, #0048BB 0%, #004876 60%);
-    font-size: 5vw;
+    font-size: 0.45rem;
 }
 
 .titleName {
@@ -96,7 +96,7 @@ input {
     border-color: #ffca71;
     border-width: 0.06rem;
     border-radius: 0.1rem;
-    font-size: 3vw;
+    font-size: 0.45rem;
 }
 .inputTable {
     width: 94%;
@@ -125,7 +125,7 @@ input {
 }
 .numText {
     float: left;
-    width: 7%;
+    width: 15%;
     height: 100%;
     text-align: center;
     margin: 0;
@@ -134,7 +134,7 @@ input {
 }
 .numNameBlock {
     float: left;
-    width: 93%;
+    width: 85%;
     height: 100%;
     margin: 0;
     padding: 0;
@@ -184,6 +184,7 @@ input {
     background-size: contain;
     background-position: center;
     line-height: 1rem;
+    font-size: 0.4rem;
 }
 .functionButton {
     overflow: auto;
@@ -196,7 +197,7 @@ input {
     border-width: 0.06rem;
     border-radius: 0.2rem;
     background-color: #004876;
-    font-size: 3vw;
+    font-size: 0.4rem;
 }
 .messageBox {
     overflow: auto;

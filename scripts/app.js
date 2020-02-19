@@ -4,14 +4,12 @@ function AdaptationPage()
 {
     // 适配不同页面
     document.getElementsByTagName("html")[0].style.fontSize = (document.body.clientWidth / 1080) * 100 + "px";
-    console.log("适配页面");
 
     //动态固定页面底部的松树pine
     var pineL = document.getElementById("pineL");
     var pineR = document.getElementById("pineR");
     pineL.style.top = document.body.clientHeight - pineL.clientHeight + "px";
     pineR.style.top = document.body.clientHeight - pineR.clientHeight + "px";
-    console.log("适配松树");
 }
 AdaptationPage();
 
