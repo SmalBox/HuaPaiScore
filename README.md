@@ -1,11 +1,11 @@
-# 花牌记分器 V0.2
+# 花牌记分器 V0.2.1
 
 ## Description
 
    - 花牌记分器用于2-6人的花牌记分
    - 主要帮助统计玩家分数，核对本轮数据
    - 用html、css3、JavaScript实现，可在线使用，也可下载离线使用
-   - [点击使用花牌记分器](https://nas.smalbox.club/HuaPaiScore/HuaPai.html)
+   - [点击使用花牌记分器](https://kit.aibox.nl/HuaPaiScore/HuaPai.html)
 
 ## Usage
 
