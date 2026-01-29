@@ -158,7 +158,7 @@ input {
 .buttonBlockLeft {
     overflow: auto;
     float: left;
-    width: 50%;
+    width: 55%;
     height: 100%;
     margin: 0;
     padding: 0;
@@ -166,7 +166,7 @@ input {
 }
 .buttonBlockRight {
     float: right;
-    width: 50%;
+    width: 45%;
     height: 100%;
     margin: 0;
     padding: 0;
@@ -350,3 +350,171 @@ input {
     padding: 0;
     background-color: black;
 }
+
+/* 历史记录弹窗样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #004876;
+    border: 2px solid #ffca71;
+    border-radius: 0.2rem;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-title {
+    background-color: #690505;
+    color: white;
+    padding: 0.3rem 0.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.4rem;
+    border-bottom: 2px solid #ffca71;
+}
+
+.close-btn {
+    font-size: 0.6rem;
+    cursor: pointer;
+    padding: 0rem;
+}
+
+.history-list-container {
+    overflow-y: auto;
+    max-height: calc(90vh - 1.2rem);
+    padding: 0.2rem;
+}
+
+.history-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.history-item {
+    background-color: rgba(255, 202, 113, 0.1);
+    border: 1px solid #ffca71;
+    border-radius: 0.1rem;
+    margin-bottom: 0.2rem;
+    padding: 0.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-info {
+    flex: 1;
+    cursor: pointer;
+    padding: 0.1rem;
+}
+
+.history-file-name {
+    color: white;
+    font-size: 0.35rem;
+}
+
+.history-count {
+    color: #ffca71;
+    font-size: 0.3rem;
+    margin-left: 0.2rem;
+}
+
+.delete-btn {
+    color: #ff6b6b;
+    font-size: 0.5rem;
+    cursor: pointer;
+    padding: 0 0.2rem;
+}
+
+.delete-btn:hover {
+    color: #ff3333;
+}
+
+.no-records {
+    text-align: center;
+    color: #ffca71;
+    padding: 1rem;
+    font-size: 0.4rem;
+}
+
+/* 详情弹窗样式 */
+.detail-content {
+    width: 95%;
+    max-height: 90vh;
+}
+
+.detail-content-inner {
+    overflow-y: auto;
+    max-height: calc(90vh - 1.2rem);
+    padding: 0.2rem;
+}
+
+.detail-record {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #ffca71;
+    border-radius: 0.1rem;
+    margin-bottom: 0.3rem;
+    padding: 0.2rem;
+}
+
+.detail-record-header {
+    color: #ffca71;
+    font-size: 0.3rem;
+    margin-bottom: 0.2rem;
+    padding-bottom: 0.1rem;
+    border-bottom: 1px dashed #ffca71;
+}
+
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.3rem;
+    color: white;
+}
+
+.detail-table th,
+.detail-table td {
+    border: 1px solid rgba(255, 202, 113, 0.3);
+    padding: 0.1rem;
+    text-align: center;
+}
+
+.detail-table th {
+    background-color: rgba(144, 6, 0, 0.5);
+    color: #ffca71;
+}
+
+/* 历史记录按钮样式 */
+.history-button {
+    overflow: auto;
+    float: left;
+    width: 43%;
+    height: 100%;
+    margin-left: 5%;
+    color: white;
+    border-style: solid;
+    border-width: 0.06rem;
+    border-radius: 0.2rem;
+    background-color: #004876;
+    font-size: 0.4rem;
+    cursor: pointer;
+}
+
+.history-button:hover {
+    background-color: #005a94;
+}
+

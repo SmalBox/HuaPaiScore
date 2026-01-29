@@ -40,9 +40,9 @@ function InitRoundData()
 
             // 本地存储roundData json对象
             localStorage.setItem("roundData", JSON.stringify(roundData));
-            
+
             console.log("无本地数据，已初始化本地数据！");
-            
+
         }
         else
         {
@@ -51,6 +51,16 @@ function InitRoundData()
 
             // 用本地数据更新视图
             UpdateViewRoundData();
+        }
+
+        // 恢复历史记录文件名（如果有历史数据）
+        var historyStorage = localStorage.getItem("historyData");
+        if (historyStorage) {
+            var historyData = JSON.parse(historyStorage);
+            if (historyData.currentFile) {
+                currentHistoryFile = historyData.currentFile;
+                console.log("已恢复历史记录文件名: " + currentHistoryFile);
+            }
         }
 
         //ls.clear();
@@ -107,7 +117,7 @@ function Reset()
     {
         // 支持本地数据存储，先修改本地存储，再更新视图
         var round = JSON.parse(localStorage.getItem("roundData"));
-        
+
         for (var i = 0; i < 6; i++)
         {
             round.player[i].name = "";
@@ -118,6 +128,14 @@ function Reset()
         localStorage.setItem("roundData", JSON.stringify(round));
 
         UpdateViewRoundData();
+
+        // 清除历史记录文件名，下次结算时创建新文件
+        var historyStorage = localStorage.getItem("historyData");
+        if (historyStorage) {
+            var historyData = JSON.parse(historyStorage);
+            delete historyData.currentFile;
+            localStorage.setItem("historyData", JSON.stringify(historyData));
+        }
     }
     else
     {
@@ -129,6 +147,7 @@ function Reset()
         }
 
     }
+    currentHistoryFile = null;
     UpdateViewMessageBox("已重置所有得分！");
 }
 
@@ -159,12 +178,22 @@ function settleAccountScore()
 
         for (var i = 0; i < 6; i++)
         {
+            var curScoreValue = Number(document.getElementById(curScore + (i + 1)).value);
             round.player[i].name = document.getElementById("playerName" + (i + 1)).value;
             round.player[i].sumScore =
                 String(
                     Number(document.getElementById(sumScore + (i + 1)).textContent) +
-                    Number(document.getElementById(curScore + (i + 1)).value)
+                    curScoreValue
                 );
+            round.player[i].curScore = String(curScoreValue);
+        }
+
+        // 先保存本轮得分数据到历史记录
+        saveHistoryRecordWithRoundData(round);
+
+        // 清空本轮得分
+        for (var i = 0; i < 6; i++)
+        {
             round.player[i].curScore = "";
         }
 
@@ -188,4 +217,257 @@ function settleAccountScore()
 
     //document.getElementById("messageBox").textContent = "本轮结算成功！";
     UpdateViewMessageBox("本轮结算成功！");
+}
+
+// 生成文件名格式：年月日时分秒
+function getHistoryFileName() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var day = String(now.getDate()).padStart(2, '0');
+    var hour = String(now.getHours()).padStart(2, '0');
+    var minute = String(now.getMinutes()).padStart(2, '0');
+    var second = String(now.getSeconds()).padStart(2, '0');
+    return year + month + day + '_' + hour + minute + second;
+}
+
+// 保存历史记录
+var currentHistoryFile = null;
+
+function saveHistoryRecordWithRoundData(round) {
+    // 获取现有记录或创建新记录
+    var historyData;
+    var historyStorage = localStorage.getItem("historyData");
+    if (historyStorage) {
+        historyData = JSON.parse(historyStorage);
+    } else {
+        historyData = {};
+    }
+
+    // 获取文件名：如果currentHistoryFile为空，尝试从存储恢复；如果都没有，生成新的
+    var fileName = currentHistoryFile;
+    if (!fileName && historyData.currentFile) {
+        fileName = historyData.currentFile;
+    }
+    if (!fileName) {
+        fileName = getHistoryFileName();
+    }
+
+    // 更新当前文件名
+    currentHistoryFile = fileName;
+    historyData.currentFile = fileName;
+
+    // 获取当前时间
+    var now = new Date();
+    var timeStr = now.getFullYear() + '-' +
+                  String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                  String(now.getDate()).padStart(2, '0') + ' ' +
+                  String(now.getHours()).padStart(2, '0') + ':' +
+                  String(now.getMinutes()).padStart(2, '0') + ':' +
+                  String(now.getSeconds()).padStart(2, '0');
+
+    // 构建本轮得分数据
+    var roundScores = [];
+    for (var i = 0; i < 6; i++) {
+        if (round.player[i].name || round.player[i].curScore) {
+            roundScores.push({
+                playerName: round.player[i].name,
+                sumScore: round.player[i].sumScore,
+                curScore: round.player[i].curScore
+            });
+        }
+    }
+
+    // 添加新记录
+    var newRecord = {
+        time: timeStr,
+        players: roundScores
+    };
+
+    if (!historyData[fileName]) {
+        historyData[fileName] = [];
+    }
+    historyData[fileName].push(newRecord);
+
+    // 保存到本地存储
+    localStorage.setItem("historyData", JSON.stringify(historyData));
+    console.log("历史记录已保存: " + fileName);
+}
+
+function saveHistoryRecord() {
+    var round = JSON.parse(localStorage.getItem("roundData"));
+    saveHistoryRecordWithRoundData(round);
+}
+
+// 显示历史记录列表
+function showHistoryList() {
+    var historyStorage = localStorage.getItem("historyData");
+    var historyData = historyStorage ? JSON.parse(historyStorage) : {};
+
+    // 获取所有文件名（排除currentFile），并排序（最新的在前面）
+    var fileNames = Object.keys(historyData).filter(function(name) {
+        return name !== 'currentFile';
+    }).sort().reverse();
+
+    // 创建弹窗遮罩
+    var overlay = document.createElement('div');
+    overlay.id = 'historyOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) {
+        if (e.target === overlay) {
+            closeHistoryModal();
+        }
+    };
+
+    // 创建弹窗内容
+    var modal = document.createElement('div');
+    modal.id = 'historyModal';
+    modal.className = 'modal-content';
+
+    // 标题栏
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.innerHTML = '<span>历史记录</span><span class="close-btn" onclick="closeHistoryModal()">&times;</span>';
+    modal.appendChild(title);
+
+    // 记录列表
+    var listContainer = document.createElement('div');
+    listContainer.className = 'history-list-container';
+
+    if (fileNames.length === 0) {
+        listContainer.innerHTML = '<div class="no-records">暂无历史记录</div>';
+    } else {
+        var ul = document.createElement('ul');
+        ul.className = 'history-list';
+
+        fileNames.forEach(function(fileName) {
+            var records = historyData[fileName];
+            var recordCount = records ? records.length : 0;
+            var displayName = fileName.replace('_', ' ').replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+
+            var li = document.createElement('li');
+            li.className = 'history-item';
+            li.innerHTML = '<div class="history-info" onclick="showHistoryDetail(\'' + fileName + '\')">' +
+                '<span class="history-file-name">' + displayName + '</span>' +
+                '<span class="history-count">(' + recordCount + '条记录)</span>' +
+                '</div>' +
+                '<span class="delete-btn" onclick="confirmDeleteHistory(\'' + fileName + '\')">&times;</span>';
+            ul.appendChild(li);
+        });
+
+        listContainer.appendChild(ul);
+    }
+
+    modal.appendChild(listContainer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 显示历史记录详情
+function showHistoryDetail(fileName) {
+    var historyStorage = localStorage.getItem("historyData");
+    var historyData = historyStorage ? JSON.parse(historyStorage) : {};
+    var records = historyData[fileName] || [];
+
+    // 创建弹窗遮罩
+    var overlay = document.createElement('div');
+    overlay.id = 'detailOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) {
+        if (e.target === overlay) {
+            closeDetailModal();
+        }
+    };
+
+    // 创建详情弹窗
+    var modal = document.createElement('div');
+    modal.id = 'detailModal';
+    modal.className = 'modal-content detail-content';
+
+    // 标题栏
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    var displayName = fileName.replace('_', ' ').replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+    title.innerHTML = '<span>' + displayName + ' 详情</span><span class="close-btn" onclick="closeDetailModal()">&times;</span>';
+    modal.appendChild(title);
+
+    // 详情内容
+    var content = document.createElement('div');
+    content.className = 'detail-content-inner';
+
+    records.forEach(function(record, index) {
+        var recordDiv = document.createElement('div');
+        recordDiv.className = 'detail-record';
+
+        var header = document.createElement('div');
+        header.className = 'detail-record-header';
+        header.textContent = '第 ' + (index + 1) + ' 轮 - ' + record.time;
+        recordDiv.appendChild(header);
+
+        var table = document.createElement('table');
+        table.className = 'detail-table';
+
+        // 表头
+        var thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>玩家</th><th>累计得分</th><th>本轮得分</th></tr>';
+        table.appendChild(thead);
+
+        // 表体
+        var tbody = document.createElement('tbody');
+        record.players.forEach(function(player) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + player.playerName + '</td>' +
+                '<td>' + player.sumScore + '</td>' +
+                '<td>' + player.curScore + '</td>';
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        recordDiv.appendChild(table);
+        content.appendChild(recordDiv);
+    });
+
+    modal.appendChild(content);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 关闭历史记录列表弹窗
+function closeHistoryModal() {
+    var overlay = document.getElementById('historyOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// 关闭详情弹窗
+function closeDetailModal() {
+    var overlay = document.getElementById('detailOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// 确认删除历史记录
+function confirmDeleteHistory(fileName) {
+    var displayName = fileName.replace('_', ' ').replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+    if (confirm('确定要删除 ' + displayName + ' 的所有记录吗？')) {
+        deleteHistoryFile(fileName);
+    }
+}
+
+// 删除历史记录文件
+function deleteHistoryFile(fileName) {
+    var historyStorage = localStorage.getItem("historyData");
+    var historyData = historyStorage ? JSON.parse(historyStorage) : {};
+
+    delete historyData[fileName];
+    localStorage.setItem("historyData", JSON.stringify(historyData));
+
+    // 刷新列表
+    var overlay = document.getElementById('historyOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+    showHistoryList();
 }
