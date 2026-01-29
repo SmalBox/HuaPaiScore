@@ -502,7 +502,7 @@ input {
 .history-button {
     overflow: auto;
     float: left;
-    width: 43%;
+    width: 45%;
     height: 100%;
     margin-left: 5%;
     color: white;
@@ -516,5 +516,85 @@ input {
 
 .history-button:hover {
     background-color: #005a94;
+}
+
+/* 更多按钮样式 */
+.more-button {
+    overflow: auto;
+    float: left;
+    width: 43%;
+    height: 100%;
+    margin-left: 5%;
+    color: white;
+    border-style: solid;
+    border-width: 0.06rem;
+    border-radius: 0.2rem;
+    background-color: #004876;
+    font-size: 0.4rem;
+    cursor: pointer;
+}
+
+.more-button:hover {
+    background-color: #005a94;
+}
+
+/* 更多菜单弹窗 */
+.menu-content {
+    width: 90%;
+    max-width: 1000px;
+    max-height: 80vh;
+}
+
+.menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.2rem;
+}
+
+.menu-item {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #ffca71;
+    border-radius: 0.1rem;
+    margin-bottom: 0.2rem;
+    padding: 0.3rem;
+    color: white;
+    font-size: 0.4rem;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+    background-color: rgba(255, 202, 113, 0.2);
+}
+
+/* 关于弹窗 */
+.about-content {
+    width: 90%;
+    max-width: 900px;
+}
+
+.about-inner {
+    padding: 0.4rem;
+    color: white;
+    font-size: 0.3rem;
+    line-height: 1.8;
+}
+
+.about-title {
+    text-align: center;
+    font-size: 0.5rem;
+    color: #ffca71;
+    margin-bottom: 0.3rem;
+    padding-bottom: 0.2rem;
+    border-bottom: 2px solid #ffca71;
+}
+
+.about-info {
+    margin-bottom: 0.2rem;
+}
+
+.about-label {
+    color: #ffca71;
 }
 

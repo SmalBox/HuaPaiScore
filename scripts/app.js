@@ -471,3 +471,106 @@ function deleteHistoryFile(fileName) {
     }
     showHistoryList();
 }
+
+// 显示更多菜单
+function showMoreMenu() {
+    // 创建弹窗遮罩
+    var overlay = document.createElement('div');
+    overlay.id = 'menuOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) {
+        if (e.target === overlay) {
+            closeMenuModal();
+        }
+    };
+
+    // 创建菜单弹窗
+    var modal = document.createElement('div');
+    modal.id = 'menuModal';
+    modal.className = 'modal-content menu-content';
+
+    // 标题栏
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.innerHTML = '<span>更多选项</span><span class="close-btn" onclick="closeMenuModal()">&times;</span>';
+    modal.appendChild(title);
+
+    // 菜单列表
+    var listContainer = document.createElement('div');
+    listContainer.className = 'history-list-container';
+
+    var ul = document.createElement('ul');
+    ul.className = 'menu-list';
+
+    // 关于按钮
+    var aboutLi = document.createElement('li');
+    aboutLi.className = 'menu-item';
+    aboutLi.textContent = '关于';
+    aboutLi.onclick = function() {
+        showAbout();
+    };
+    ul.appendChild(aboutLi);
+
+    listContainer.appendChild(ul);
+    modal.appendChild(listContainer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 关闭更多菜单
+function closeMenuModal() {
+    var overlay = document.getElementById('menuOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// 显示关于弹窗
+function showAbout() {
+    // 创建弹窗遮罩
+    var overlay = document.createElement('div');
+    overlay.id = 'aboutOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) {
+        if (e.target === overlay) {
+            closeAboutModal();
+        }
+    };
+
+    // 创建关于弹窗
+    var modal = document.createElement('div');
+    modal.id = 'aboutModal';
+    modal.className = 'modal-content about-content';
+
+    // 标题栏
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.innerHTML = '<span>关于</span><span class="close-btn" onclick="closeAboutModal()">&times;</span>';
+    modal.appendChild(title);
+
+    // 关于内容
+    var content = document.createElement('div');
+    content.className = 'about-inner';
+    content.innerHTML =
+        '<div class="about-title">花牌记分器 V0.2.3</div>' +
+        '<div class="about-info"><span class="about-label">描述：</span>用于2-6人的花牌记分工具</div>' +
+        '<div class="about-info"><span class="about-label">开发者：</span>SmalBox</div>' +
+        '<div class="about-info"><span class="about-label">功能列表：</span></div>' +
+        '<div class="about-info" style="padding-left: 0.3rem; line-height: 2;">' +
+        '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
+        '<span style="color: #ffca71;">新增功能（V0.2.3）：历史记录查看与管理</span><br/>' +
+        '扩展功能：添加到桌面（PWA）、更多菜单' +
+        '</div>';
+
+    modal.appendChild(content);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 关闭关于弹窗
+function closeAboutModal() {
+    var overlay = document.getElementById('aboutOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
