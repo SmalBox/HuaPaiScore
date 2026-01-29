@@ -598,3 +598,138 @@ input {
     color: #ffca71;
 }
 
+/* ========== 动画样式 ========== */
+
+/* 弹窗打开动画 */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-content {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+/* 遮罩淡入动画 */
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-overlay {
+    animation: overlayFadeIn 0.2s ease-out;
+}
+
+/* 按钮悬停动画 */
+.functionButton:hover,
+.history-button:hover,
+.more-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 202, 113, 0.5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 结算按钮悬停动画 */
+.settleAccountButton:hover {
+    transform: scale(1.02);
+    filter: brightness(1.15);
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+/* 菜单项悬停动画 */
+.menu-item:hover {
+    transform: scale(1.02);
+    background-color: rgba(255, 202, 113, 0.3);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+/* 历史记录项悬停动画 */
+.history-item:hover {
+    background-color: rgba(255, 202, 113, 0.2);
+    transform: translateX(5px);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* 关闭按钮悬停动画 */
+.close-btn:hover {
+    transform: scale(1.2);
+    transition: transform 0.2s ease;
+}
+
+/* 删除按钮悬停动画 */
+.delete-btn:hover {
+    transform: scale(1.3);
+    transition: transform 0.2s ease;
+}
+
+/* 消息盒子成功动画 */
+@keyframes messageSuccess {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); color: #ffca71; }
+    100% { transform: scale(1); }
+}
+
+.message-success {
+    animation: messageSuccess 0.5s ease-out;
+}
+
+/* 消息盒子错误动画 */
+@keyframes messageError {
+    0%, 100% { transform: translateX(0); color: white; }
+    25% { transform: translateX(-5px); color: #ff6b6b; }
+    75% { transform: translateX(5px); color: #ff3333; }
+}
+
+.message-error {
+    animation: messageError 0.4s ease-out;
+}
+
+/* 分数变化动画 */
+@keyframes scorePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); color: #ffca71; }
+    100% { transform: scale(1); }
+}
+
+.score-pulse {
+    animation: scorePulse 0.3s ease-out;
+}
+
+/* 仙鹤轻微浮动动画 */
+@keyframes craneFloat {
+    0% { transform: translateY(0) translateX(0); }
+    50% { transform: translateY(-5px) translateX(5px); }
+    100% { transform: translateY(0) translateX(0); }
+}
+
+.crane {
+    animation: craneFloat 4s ease-in-out infinite;
+}
+
+/* 输入框焦点动画 */
+input:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 202, 113, 0.3);
+    transition: box-shadow 0.3s ease;
+}
+
+/* 表格行淡入动画 */
+.detail-record {
+    animation: modalSlideIn 0.3s ease-out backwards;
+}
+
+.detail-record:nth-child(1) { animation-delay: 0.05s; }
+.detail-record:nth-child(2) { animation-delay: 0.1s; }
+.detail-record:nth-child(3) { animation-delay: 0.15s; }
+.detail-record:nth-child(4) { animation-delay: 0.2s; }
+.detail-record:nth-child(5) { animation-delay: 0.25s; }
+.detail-record:nth-child(6) { animation-delay: 0.3s; }
+
+/* 枫叶静态显示 */
+

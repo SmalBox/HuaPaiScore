@@ -73,20 +73,51 @@ function UpdateViewRoundData()
 {
     // 本地获取roundData json对象
     var round = JSON.parse(localStorage.getItem("roundData"));
-    
+
     // 用本地数据初始化界面
     for (var i = 0; i < 6; i++)
     {
-        document.getElementById("playerName" + (i + 1)).value = round.player[i].name;
-        document.getElementById("sumScore" + (i + 1)).textContent = round.player[i].sumScore;
-        document.getElementById("curScore" + (i + 1)).value = round.player[i].curScore;
+        var playerNameEl = document.getElementById("playerName" + (i + 1));
+        var sumScoreEl = document.getElementById("sumScore" + (i + 1));
+        var curScoreEl = document.getElementById("curScore" + (i + 1));
+
+        playerNameEl.value = round.player[i].name;
+
+        // 如果得分有变化，添加脉冲动画
+        var oldScore = sumScoreEl.textContent;
+        sumScoreEl.textContent = round.player[i].sumScore;
+
+        if (oldScore !== round.player[i].sumScore && round.player[i].sumScore !== "0") {
+            // 移除之前的动画类
+            sumScoreEl.classList.remove("score-pulse");
+            // 触发重新渲染
+            void sumScoreEl.offsetWidth;
+            // 添加脉冲动画
+            sumScoreEl.classList.add("score-pulse");
+        }
+
+        curScoreEl.value = round.player[i].curScore;
     }
-    
+
     console.log("已用本地数据更新视图！");
 }
 function UpdateViewMessageBox(msg)
 {
-    document.getElementById("messageBox").textContent = msg;
+    var messageBox = document.getElementById("messageBox");
+    messageBox.textContent = msg;
+
+    // 移除之前的动画类
+    messageBox.classList.remove("message-success", "message-error");
+
+    // 触发重新渲染以重新应用动画
+    void messageBox.offsetWidth;
+
+    // 根据消息内容判断动画类型
+    if (msg.indexOf("有误") !== -1 || msg.indexOf("错误") !== -1) {
+        messageBox.classList.add("message-error");
+    } else {
+        messageBox.classList.add("message-success");
+    }
 }
 InitRoundData();
 
