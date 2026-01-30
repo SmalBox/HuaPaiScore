@@ -98,12 +98,21 @@ input {
     border-radius: 0.1rem;
     font-size: 0.45rem;
 }
+.roundIndicator {
+    text-align: center;
+    color: #ffca71;
+    font-size: 0.5rem;
+    font-weight: bold;
+    padding: 0.2rem 0;
+    border-bottom: 1px dashed rgba(255, 202, 113, 0.5);
+    margin: 0 0.3rem;
+}
 .inputTable {
     width: 94%;
     text-align: center;
     color: white;
     margin: 0 auto;
-    margin-top: 0.6rem;
+    /* margin-top: 0.6rem; */
     border-style: solid;
     border-color: #ffca71;
     border-width: 0.04rem;
@@ -418,8 +427,10 @@ input {
 
 .history-info {
     flex: 1;
-    cursor: pointer;
+    cursor: auto;
     padding: 0.1rem;
+    line-height: 0.2rem;
+    margin-bottom: 0.15rem;
 }
 
 .history-file-name {
@@ -436,12 +447,29 @@ input {
 .delete-btn {
     color: #ff6b6b;
     font-size: 0.5rem;
-    cursor: pointer;
+    cursor: auto;
     padding: 0 0.2rem;
 }
 
 .delete-btn:hover {
     color: #ff3333;
+    transform: scale(1.3);
+    transition: transform 0.2s ease;
+}
+
+/* 图表按钮样式 */
+.chart-btn {
+    color: #4ecdc4;
+    font-size: 0.5rem;
+    cursor: auto;
+    padding: 0 0.2rem;
+    margin-right: 0.1rem;
+}
+
+.chart-btn:hover {
+    color: #7ee8e0;
+    transform: scale(1.2);
+    transition: transform 0.2s ease;
 }
 
 .no-records {
@@ -730,6 +758,68 @@ input:focus {
 .detail-record:nth-child(4) { animation-delay: 0.2s; }
 .detail-record:nth-child(5) { animation-delay: 0.25s; }
 .detail-record:nth-child(6) { animation-delay: 0.3s; }
+
+/* ========== 统计信息样式 ========== */
+.stats-container {
+    background-color: rgba(0, 72, 118, 0.3);
+    border: 1px solid #ffca71;
+    border-radius: 0.1rem;
+    margin-top: 15px;
+}
+
+.stats-title {
+    color: #ffca71;
+    font-size: 0.45rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(255, 202, 113, 0.5);
+}
+
+.stats-item {
+    color: white;
+    font-size: 0.38rem;
+    margin-bottom: 12px;
+    line-height: 1.6;
+    opacity: 0;
+    animation: slideInUp 0.4s ease-out forwards !important;
+}
+
+.stats-label {
+    color: #ffca71;
+    font-weight: bold;
+}
+
+.stats-value {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.stats-names {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ========== 图表进场动画 ========== */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.canvas-slide-in {
+    animation: slideInUp 0.5s ease-out forwards;
+}
+
+.stats-slide-in {
+    opacity: 0;
+    animation: slideInUp 0.5s ease-out forwards !important;
+    animation-fill-mode: backwards;
+}
 
 /* 枫叶静态显示 */
 

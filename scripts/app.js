@@ -63,10 +63,23 @@ function InitRoundData()
             }
         }
 
+        // 更新轮次显示
+        updateRoundIndicator();
+
         //ls.clear();
     } else {
         // 抱歉！不支持 Web Storage ..
         alert("不支持 本地存储！刷新或重新打开页面，本页面数据将丢失！请在使用过程中不要关闭或刷新页面！");
+    }
+}
+
+// 更新轮次显示
+function updateRoundIndicator() {
+    var round = JSON.parse(localStorage.getItem("roundData"));
+    var roundNum = round.roundNum || '1';
+    var indicator = document.getElementById("roundIndicator");
+    if (indicator) {
+        indicator.textContent = "第 " + roundNum + " 轮";
     }
 }
 function UpdateViewRoundData()
@@ -156,9 +169,15 @@ function Reset()
             round.player[i].curScore = "";
         }
 
+        // 重置轮次为1
+        round.roundNum = "1";
+
         localStorage.setItem("roundData", JSON.stringify(round));
 
         UpdateViewRoundData();
+
+        // 更新轮次显示
+        updateRoundIndicator();
 
         // 清除历史记录文件名，下次结算时创建新文件
         var historyStorage = localStorage.getItem("historyData");
@@ -228,9 +247,16 @@ function settleAccountScore()
             round.player[i].curScore = "";
         }
 
+        // 增加轮次
+        var currentRound = parseInt(round.roundNum) || 1;
+        round.roundNum = String(currentRound + 1);
+
         localStorage.setItem("roundData", JSON.stringify(round));
 
         UpdateViewRoundData();
+
+        // 更新轮次显示
+        updateRoundIndicator();
     }
     else
     {
@@ -382,6 +408,7 @@ function showHistoryList() {
                 '<span class="history-file-name">' + displayName + '</span>' +
                 '<span class="history-count">(' + recordCount + '条记录)</span>' +
                 '</div>' +
+                '<span class="chart-btn" onclick="showHistoryChart(\'' + fileName + '\')">🏆</span>' +
                 '<span class="delete-btn" onclick="confirmDeleteHistory(\'' + fileName + '\')">&times;</span>';
             ul.appendChild(li);
         });
@@ -392,6 +419,787 @@ function showHistoryList() {
     modal.appendChild(listContainer);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+}
+
+// 显示折线图
+function showHistoryChart(fileName) {
+    var historyStorage = localStorage.getItem("historyData");
+    var historyData = historyStorage ? JSON.parse(historyStorage) : {};
+    var records = historyData[fileName] || [];
+
+    if (records.length === 0) {
+        alert("暂无数据");
+        return;
+    }
+
+    // 创建弹窗遮罩
+    var overlay = document.createElement('div');
+    overlay.id = 'chartOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) {
+        if (e.target === overlay) {
+            closeChartModal();
+        }
+    };
+
+    // 创建图表弹窗
+    var modal = document.createElement('div');
+    modal.id = 'chartModal';
+    modal.className = 'modal-content';
+    modal.style.maxHeight = 'none';
+
+    // 标题栏
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    var displayName = fileName.replace('_', ' ').replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+    title.innerHTML = '<span>' + displayName + ' 得分趋势图</span><span class="close-btn" onclick="closeChartModal()">&times;</span>';
+    modal.appendChild(title);
+
+    // 图表内容
+    var content = document.createElement('div');
+    content.className = 'history-list-container';
+    content.style.maxHeight = 'none';
+    content.style.overflowY = 'visible';
+
+    // 获取所有玩家名字
+    var playerNames = [];
+    records.forEach(function(record) {
+        record.players.forEach(function(player) {
+            if (player.playerName && playerNames.indexOf(player.playerName) === -1) {
+                playerNames.push(player.playerName);
+            }
+        });
+    });
+
+    if (playerNames.length === 0) {
+        content.innerHTML = '<div class="no-records">暂无有效数据</div>';
+        modal.appendChild(content);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        return;
+    }
+
+    // 颜色配置
+    var colors = ['#ff6b6b', '#cd8d4e', '#c1d145', '#48f924', '#3dc6b3', '#3235e4'];
+    var colorMap = {};
+    playerNames.forEach(function(name, index) {
+        colorMap[name] = colors[index % colors.length];
+    });
+
+    // 创建图表 Canvas
+    var chartCanvas = document.createElement('canvas');
+    chartCanvas.id = 'scoreChart';
+    chartCanvas.className = 'score-chart canvas-slide-in';
+    chartCanvas.style.width = '100%';
+    chartCanvas.style.aspectRatio = '1';
+    chartCanvas.style.maxHeight = '55vh';
+    chartCanvas.style.objectFit = 'contain';
+    content.appendChild(chartCanvas);
+
+    // 创建统计信息容器（HTML）
+    var statsContainer = document.createElement('div');
+    statsContainer.className = 'stats-container stats-slide-in';
+    statsContainer.style.marginTop = '15px';
+    statsContainer.style.padding = '15px';
+
+    // 计算统计信息
+    var stats = calculateStats(records);
+
+    // 构建统计信息HTML
+    // 辅助函数：根据分数值返回颜色
+    function getScoreColor(score) {
+        if (score === '-' || score >= 0) {
+            return '#f5ce00';
+        }
+        return '#b13a3a';
+    }
+
+    statsContainer.innerHTML =
+        '<div class="stats-title">达成记录!</div>' +
+        '<div class="stats-item" style="animation-delay: 0.1s;">' +
+            '<span class="stats-label">累积最高记录😎:</span> ' +
+            '<span class="stats-value" style="color:' + getScoreColor(stats.allTimeMaxScore) + ';">' + stats.allTimeMaxScore + '</span> ' +
+            '<span class="stats-names">(' + stats.allTimeMaxPlayers.join(', ') + ')</span>' +
+        '</div>' +
+        '<div class="stats-item" style="animation-delay: 0.2s;">' +
+            '<span class="stats-label">累积最低记录🤦‍♀:</span> ' +
+            '<span class="stats-value" style="color:' + getScoreColor(stats.allTimeMinScore) + ';">' + stats.allTimeMinScore + '</span> ' +
+            '<span class="stats-names">(' + stats.allTimeMinPlayers.join(', ') + ')</span>' +
+        '</div>' +
+        '<div class="stats-item" style="animation-delay: 0.3s;">' +
+            '<span class="stats-label">单轮得分最高🆙:</span> ' +
+            '<span class="stats-value" style="color:' + getScoreColor(stats.roundMaxScore) + ';">' + stats.roundMaxScore + '</span> ' +
+            '<span class="stats-names">(' + stats.roundMaxPlayers.join(', ') + ')</span>' +
+        '</div>' +
+        '<div class="stats-item" style="animation-delay: 0.4s;">' +
+            '<span class="stats-label">单轮得分最低⬇️:</span> ' +
+            '<span class="stats-value" style="color:' + getScoreColor(stats.roundMinScore) + ';">' + stats.roundMinScore + '</span> ' +
+            '<span class="stats-names">(' + stats.roundMinPlayers.join(', ') + ')</span>' +
+        '</div>';
+
+    content.appendChild(statsContainer);
+
+    modal.appendChild(content);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // 绘制图表
+    setTimeout(function() {
+        drawLineChart(chartCanvas, records, playerNames, colorMap);
+    }, 100);
+}
+
+// 皇冠动画状态
+var crownAnimations = [];
+var crownAnimationId = null;
+
+// 绘制小皇冠
+// rank: 1-金牌(金色), 2-银牌(银色), 3-铜牌(铜色)
+// 返回: {x, y, rank} 用于动画更新
+function drawCrown(ctx, x, y, rank) {
+    ctx.save();
+
+    // 根据排名设置颜色
+    var fillColor, strokeColor;
+    switch(rank) {
+        case 1: // 金色
+            fillColor = '#ffd700';
+            strokeColor = '#b8860b';
+            break;
+        case 2: // 银色
+            fillColor = '#c0c0c0';
+            strokeColor = '#808080';
+            break;
+        case 3: // 铜色
+            fillColor = '#cd7f32';
+            strokeColor = '#8b4513';
+            break;
+        default:
+            fillColor = '#ffd700';
+            strokeColor = '#b8860b';
+    }
+
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1;
+
+    // 绘制皇冠形状
+    ctx.beginPath();
+    // 皇冠底部
+    ctx.moveTo(x, y + 15);
+    ctx.lineTo(x + 30, y + 15);
+    // 皇冠右侧
+    ctx.lineTo(x + 30, y + 8);
+    // 皇冠右尖
+    ctx.lineTo(x + 24, y + 12);
+    // 皇冠中尖（最高）
+    ctx.lineTo(x + 15, y);
+    // 皇冠左尖
+    ctx.lineTo(x + 6, y + 12);
+    // 皇冠左侧
+    ctx.lineTo(x, y + 8);
+    ctx.closePath();
+
+    ctx.fill();
+    ctx.stroke();
+
+    // 添加闪光效果（简单的几个点）
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x + 8, y + 6, 1.5, 0, Math.PI * 2);
+    ctx.arc(x + 15, y + 3, 1.5, 0, Math.PI * 2);
+    ctx.arc(x + 22, y + 6, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // 返回皇冠信息用于动画
+    return { x: x, y: y, rank: rank, baseX: x, baseY: y };
+}
+
+// 更新皇冠动画
+function updateCrownAnimations(time) {
+    // 脉冲动画参数
+    var pulse = Math.sin(time / 200) * 0.15 + 1; // 0.85 ~ 1.15
+    var glow = Math.sin(time / 300) * 0.3 + 0.7; // 0.4 ~ 1.0
+
+    return { pulse: pulse, glow: glow };
+}
+
+// 绘制带动画效果的皇冠
+function drawAnimatedCrown(ctx, crown, time) {
+    ctx.save();
+
+    var pulse = Math.sin(time / 200) * 0.1 + 1; // 脉冲缩放
+    var glow = Math.sin(time / 300) * 0.2 + 0.8; // 发光强度
+
+    var x = crown.baseX;
+    var y = crown.baseY;
+
+    // 根据排名设置颜色
+    var fillColor, strokeColor;
+    switch(crown.rank) {
+        case 1: // 金色 - 添加额外光泽
+            fillColor = '#ffd700';
+            strokeColor = '#ffec8b';
+            break;
+        case 2: // 银色
+            fillColor = '#e8e8e8';
+            strokeColor = '#a0a0a0';
+            break;
+        case 3: // 铜色
+            fillColor = '#daa520';
+            strokeColor = '#cd853f';
+            break;
+        default:
+            fillColor = '#ffd700';
+            strokeColor = '#b8860b';
+    }
+
+    // 应用脉冲缩放
+    var centerX = x + 15;
+    var centerY = y + 7;
+    ctx.translate(centerX, centerY);
+    ctx.scale(pulse, pulse);
+    ctx.translate(-centerX, -centerY);
+
+    // 发光效果（金色皇冠特有）
+    if (crown.rank === 1) {
+        ctx.shadowColor = '#ffff87';
+        ctx.shadowBlur = 2 * glow;
+    }
+
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.5;
+
+    // 绘制皇冠形状
+    ctx.beginPath();
+    // 皇冠底部
+    ctx.moveTo(x, y + 15);
+    ctx.lineTo(x + 30, y + 15);
+    // 皇冠右侧
+    ctx.lineTo(x + 30, y + 8);
+    // 皇冠右尖
+    ctx.lineTo(x + 24, y + 12);
+    // 皇冠中尖（最高）
+    ctx.lineTo(x + 15, y);
+    // 皇冠左尖
+    ctx.lineTo(x + 6, y + 12);
+    // 皇冠左侧
+    ctx.lineTo(x, y + 8);
+    ctx.closePath();
+
+    ctx.fill();
+    ctx.stroke();
+
+    // 闪光粒子效果（金色皇冠）
+    if (crown.rank === 1) {
+        var particleOffset = Math.sin(time / 150) * 3;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x + 10 + particleOffset, y + 5, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(x + 20 - particleOffset, y + 7, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        // 银色和铜色只有简单的闪光
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x + 15, y + 4, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+// 启动皇冠动画循环
+function startCrownAnimation(ctx, canvas) {
+    // 清除之前的动画
+    if (crownAnimationId) {
+        cancelAnimationFrame(crownAnimationId);
+    }
+
+    // 动画函数
+    function animate(time) {
+        if (!canvas || !ctx) return;
+
+        // 清除每个皇冠的区域（只清除皇冠区域，不覆盖图表内容）
+        crownAnimations.forEach(function(crown) {
+            var clearX = crown.baseX - 2;
+            var clearY = crown.baseY - 2;
+            var clearWidth = 34;
+            var clearHeight = 20; // 只清除皇冠区域（高约15px）
+            ctx.clearRect(clearX, clearY, clearWidth, clearHeight);
+        });
+
+        // 重绘每个皇冠
+        crownAnimations.forEach(function(crown) {
+            drawAnimatedCrown(ctx, crown, time);
+        });
+
+        crownAnimationId = requestAnimationFrame(animate);
+    }
+
+    crownAnimationId = requestAnimationFrame(animate);
+}
+
+// 停止皇冠动画
+function stopCrownAnimation() {
+    if (crownAnimationId) {
+        cancelAnimationFrame(crownAnimationId);
+        crownAnimationId = null;
+    }
+}
+
+// 绘制折线图
+function drawLineChart(canvas, records, playerNames, colorMap) {
+    var ctx = canvas.getContext('2d');
+
+    // 确保清除之前的皇冠数据
+    crownAnimations = [];
+
+    // 颜色配置（用于改名后的不同名字段）
+    var colors = ['#fc2d2d', '#17afa5', '#1056b3', '#f3c10a', '#53be24', '#ec2d7d', '#a55eea', '#c654d0'];
+
+    // 设置实际分辨率
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+
+    // 保持宽高相同，取较小值
+    var size = Math.min(rect.width, rect.height * 0.85);
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    ctx.scale(dpr, dpr);
+
+    var width = size;
+    var height = size;
+
+    // 顶部图例区域高度
+    var legendHeight = playerNames.length * 28 + 20;
+
+    // 边距
+    var padding = { top: legendHeight + 20, right: 60, bottom: 70, left: 50 };
+    var chartWidth = width - padding.left - padding.right;
+    var chartHeight = height - padding.top - padding.bottom;
+
+    // 清空画布
+    ctx.fillStyle = '#004876';
+    ctx.fillRect(0, 0, width, height);
+
+    // 绘制顶部图例 - 居中显示，每行最多3个
+    // 使用所有出现过的名字（包含改名后的名字）
+    var allNamesInRecords = [];
+    records.forEach(function(record) {
+        record.players.forEach(function(player) {
+            if (player.playerName && allNamesInRecords.indexOf(player.playerName) === -1) {
+                allNamesInRecords.push(player.playerName);
+            }
+        });
+    });
+
+    var maxPerRow = 3;
+    var legendItemWidth = width / maxPerRow;
+    var legendY = 15;
+    var legendHeight = 36;
+    var legendColorIndex = 0;
+
+    allNamesInRecords.forEach(function(name, index) {
+        var row = Math.floor(index / maxPerRow);
+        var col = index % maxPerRow;
+        var itemX = col * legendItemWidth;
+        var centerX = itemX + legendItemWidth / 2;
+        var itemY = legendY + row * legendHeight;
+
+        // 获取颜色（优先使用已存在的颜色，否则分配新颜色）
+        var color;
+        if (colorMap[name]) {
+            color = colorMap[name];
+        } else {
+            color = colors[legendColorIndex % colors.length];
+            colorMap[name] = color;
+            legendColorIndex++;
+        }
+
+        // 颜色圆块
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(centerX - 25, itemY + 16, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 玩家名字
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 36px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(name, centerX - 5, itemY + 24);
+    });
+
+    // 调整顶部边距以适应图例行数
+    var legendRowCount = Math.ceil(playerNames.length / maxPerRow);
+    padding.top = legendRowCount * legendHeight + 30;
+
+    // 获取所有得分数据范围
+    var allScores = [];
+    records.forEach(function(record) {
+        record.players.forEach(function(player) {
+            allScores.push(Number(player.sumScore));
+        });
+    });
+    var minScore = Math.min(...allScores);
+    var maxScore = Math.max(...allScores);
+    var scoreRange = maxScore - minScore || 10;
+    var scorePadding = scoreRange * 0.1;
+
+    // 绘制网格线
+    ctx.strokeStyle = 'rgba(255, 202, 113, 0.2)';
+    ctx.lineWidth = 1;
+
+    // 水平网格线
+    var yGridCount = 5;
+    for (var i = 0; i <= yGridCount; i++) {
+        var y = padding.top + (chartHeight / yGridCount) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
+        ctx.stroke();
+
+        // Y轴标签
+        var scoreValue = maxScore + scorePadding - ((maxScore + scorePadding - minScore + scorePadding) / yGridCount) * i;
+        ctx.fillStyle = '#ffca71';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(scoreValue), padding.left - 5, y + 5);
+    }
+
+    // 垂直网格线
+    var xGridCount = records.length > 1 ? Math.min(records.length - 1, 6) : 0;
+    var xStep = chartWidth / Math.max(records.length, 1);
+    var xLeftGap = 30;
+    var unitStr = xGridCount < 15?"轮":"";
+    for (var i = 0; i <= xGridCount; i++) {
+        var x = padding.left + xStep * i + xLeftGap;
+        ctx.beginPath();
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, height - padding.bottom);
+        ctx.stroke();
+
+        // X轴标签
+        var roundNum = Math.round((Math.max(records.length, 1) - 1) / Math.max(xGridCount, 1) * i) + 1;
+        ctx.fillStyle = '#ffca71';
+        ctx.font = 'bold 22px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(roundNum + unitStr, x, height - padding.bottom + 30);
+    }
+
+    // 绘制坐标轴
+    ctx.strokeStyle = '#ffca71';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, height - padding.bottom);
+    ctx.lineTo(width - padding.right, height - padding.bottom);
+    ctx.stroke();
+
+    // X轴标题
+    ctx.fillStyle = '#f1b650';
+    ctx.font = 'bold 25px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('轮数', width - 30, height - 40);
+
+    // Y轴标题
+    ctx.save();
+    ctx.font = '22px Arial';
+    ctx.translate(25, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('累计得分', 0, -5);
+    ctx.restore();
+
+    // 绘制折线
+    // 按玩家位置追踪改名，每段名字画连续的线
+    var playerCount = records.length > 0 ? records[0].players.length : 0;
+
+    // 收集最后一轮所有玩家的名字和得分，按得分从高到低排序
+    var lastRoundPlayers = [];
+    if (records.length > 0) {
+        var lastRecord = records[records.length - 1];
+        for (var pos = 0; pos < lastRecord.players.length; pos++) {
+            var player = lastRecord.players[pos];
+            if (player && player.playerName) {
+                lastRoundPlayers.push({
+                    name: player.playerName,
+                    pos: pos,
+                    sumScore: Number(player.sumScore)
+                });
+            }
+        }
+        // 按得分从高到低排序
+        lastRoundPlayers.sort(function(a, b) { return b.sumScore - a.sumScore; });
+    }
+    // 预先计算每轮的极大极小值（用于显示分数标签）
+
+    // 预先计算每轮的极大极小值（用于显示分数标签）
+    var roundExtremes = {}; // { roundIndex: { max: value, maxNames: [], min: value, minNames: [] } }
+    records.forEach(function(record, idx) {
+        var maxVal = -Infinity;
+        var minVal = Infinity;
+        var maxNames = [];
+        var minNames = [];
+
+        record.players.forEach(function(player) {
+            var score = Number(player.sumScore);
+            if (score > maxVal) {
+                maxVal = score;
+                maxNames = [player.playerName];
+            } else if (score === maxVal) {
+                maxNames.push(player.playerName);
+            }
+
+            if (score < minVal) {
+                minVal = score;
+                minNames = [player.playerName];
+            } else if (score === minVal) {
+                minNames.push(player.playerName);
+            }
+        });
+
+        roundExtremes[idx] = { max: maxVal, maxNames: maxNames, min: minVal, minNames: minNames };
+    });
+
+    // 遍历每个玩家位置
+    for (var pos = 0; pos < playerCount; pos++) {
+        // 收集该位置所有出现过的名字和对应的轮次
+        var nameRounds = {}; // { 名字: [轮次索引数组] }
+
+        records.forEach(function(record, index) {
+            var player = record.players[pos];
+            if (player && player.playerName) {
+                if (!nameRounds[player.playerName]) {
+                    nameRounds[player.playerName] = [];
+                }
+                nameRounds[player.playerName].push({
+                    roundIndex: index,
+                    sumScore: Number(player.sumScore)
+                });
+            }
+        });
+
+        // 为每个名字绘制折线段
+        var allNames = Object.keys(nameRounds);
+        var colorIndex = 0;
+
+        allNames.forEach(function(name) {
+            var rounds = nameRounds[name];
+            if (rounds.length === 0) return;
+
+            var color = colors[colorIndex % colors.length];
+            colorIndex++;
+
+            // 获取该名字的颜色（如果已存在）
+            if (colorMap[name]) {
+                color = colorMap[name];
+            } else {
+                colorMap[name] = color;
+            }
+
+            // 绘制该名字的折线
+            var points = rounds.map(function(r) {
+                var x = padding.left + xStep * r.roundIndex + xLeftGap;
+                var y = padding.top + chartHeight - ((r.sumScore - minScore + scorePadding) / (maxScore - minScore + scorePadding * 2)) * chartHeight;
+                return { x: x, y: y, sumScore: r.sumScore };
+            });
+
+            if (points.length > 0) {
+                // 保存最后一个点，用于后续绘制玩家名字
+                var lastPoint = points[points.length - 1];
+
+                // 绘制折线
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                points.forEach(function(point, idx) {
+                    if (idx === 0) {
+                        ctx.moveTo(point.x, point.y);
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                });
+                ctx.stroke();
+
+                ctx.font = '22px Arial';
+                // 绘制数据点
+                points.forEach(function(point, idx) {
+                    var roundIdx = rounds[idx].roundIndex;
+                    var extremes = roundExtremes[roundIdx];
+                    var isMax = point.sumScore === extremes.max && extremes.maxNames.indexOf(name) !== -1;
+                    var isMin = point.sumScore === extremes.min && extremes.minNames.indexOf(name) !== -1;
+
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#004876';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // 只在最大值和最小值点显示分数标签
+                    if (isMax || isMin) {
+                        if (isMax) {
+                            ctx.fillStyle = '#d5bb2a'; // 最大值亮金色
+                            ctx.fillText(point.sumScore, point.x - 16, point.y - 10); // 正上方
+                        } else if (isMin) {
+                            ctx.fillStyle = '#ac4343'; // 最小值亮红色
+                            ctx.fillText(point.sumScore, point.x - 22, point.y + 30); // 正下方
+                        }
+                    }
+                });
+                ctx.font = 'bold 25px Arial';
+
+                // 只在最后一轮存在的玩家名字才显示在右侧
+                var nameExistsInLastRound = false;
+                for (var lrIdx = 0; lrIdx < lastRoundPlayers.length; lrIdx++) {
+                    if (lastRoundPlayers[lrIdx].name === name) {
+                        nameExistsInLastRound = true;
+                        break;
+                    }
+                }
+
+                // 只为最后一轮存在的名字绘制标签
+                if (nameExistsInLastRound) {
+                    // 查找当前玩家在最后一轮的索引位置（用于Y轴排序）
+                    var playerIndex = -1;
+                    for (var i = 0; i < lastRoundPlayers.length; i++) {
+                        if (lastRoundPlayers[i].name === name) {
+                            playerIndex = i;
+                            break;
+                        }
+                    }
+
+                    // 计算名字在图表右侧的位置（从上到下排列）
+                    var labelY = padding.top + 25 + playerIndex * 90;
+                    var labelX = width - padding.right + 2; // 在图表区域内显示
+
+                    // 绘制白线连接最后一个点和名字
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]); // 虚线
+                    ctx.beginPath();
+                    ctx.moveTo(lastPoint.x, lastPoint.y);
+                    ctx.lineTo(labelX + 5, labelY);
+                    ctx.stroke();
+                    ctx.setLineDash([]); // 恢复实线
+
+                    // 绘制名字和最终得分
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 28px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(name, labelX, labelY + 8);
+                    ctx.fillStyle = lastPoint.sumScore >= 0?'#ffd700':'#be3e3e';
+                    ctx.fillText(lastPoint.sumScore, labelX, labelY + 8 + 30);
+
+                    // 如果是前三名，存储皇冠信息用于动画
+                    if (playerIndex >= 0 && playerIndex <= 2) {
+                        var crownInfo = drawCrown(ctx, labelX + 2, labelY - 33, playerIndex + 1);
+                        crownAnimations.push(crownInfo);
+                    }
+                }
+            }
+        });
+    }
+
+    // 启动皇冠动画
+    if (crownAnimations.length > 0) {
+        startCrownAnimation(ctx, canvas);
+    }
+}
+
+// 计算统计信息
+function calculateStats(records) {
+    // 1. 累积拿过最高分的分数及其相应的玩家名
+    var allTimeMaxScore = -Infinity;
+    var allTimeMaxPlayers = [];
+    // 2. 累积拿过最低分及其相应玩家名
+    var allTimeMinScore = Infinity;
+    var allTimeMinPlayers = [];
+    // 3. 单轮中谁拿到过最多的分数（单轮最高得分）
+    var roundMaxScore = -Infinity;
+    var roundMaxPlayers = [];
+    // 4. 单轮中谁输过最多分的分数（单轮最低得分）
+    var roundMinScore = Infinity;
+    var roundMinPlayers = [];
+
+    // 遍历所有记录计算统计
+    records.forEach(function(record) {
+        // 检查每轮的单轮得分（curScore）
+        record.players.forEach(function(player) {
+            var curScore = Number(player.curScore);
+
+            // 单轮最高分
+            if (curScore > roundMaxScore) {
+                roundMaxScore = curScore;
+                roundMaxPlayers = [player.playerName];
+            } else if (curScore === roundMaxScore && curScore !== 0) {
+                roundMaxPlayers.push(player.playerName);
+            }
+
+            // 单轮最低分
+            if (curScore < roundMinScore) {
+                roundMinScore = curScore;
+                roundMinPlayers = [player.playerName];
+            } else if (curScore === roundMinScore && curScore !== 0) {
+                roundMinPlayers.push(player.playerName);
+            }
+
+            // 累积最高分
+            var sumScore = Number(player.sumScore);
+            if (sumScore > allTimeMaxScore) {
+                allTimeMaxScore = sumScore;
+                allTimeMaxPlayers = [player.playerName];
+            } else if (sumScore === allTimeMaxScore) {
+                if (allTimeMaxPlayers.indexOf(player.playerName) === -1) {
+                    allTimeMaxPlayers.push(player.playerName);
+                }
+            }
+
+            // 累积最低分
+            if (sumScore < allTimeMinScore) {
+                allTimeMinScore = sumScore;
+                allTimeMinPlayers = [player.playerName];
+            } else if (sumScore === allTimeMinScore) {
+                if (allTimeMinPlayers.indexOf(player.playerName) === -1) {
+                    allTimeMinPlayers.push(player.playerName);
+                }
+            }
+        });
+    });
+
+    // 处理没有数据的情况
+    var roundMaxDisplay = roundMaxScore === -Infinity ? '-' : roundMaxScore;
+    var roundMinDisplay = roundMinScore === Infinity ? '-' : roundMinScore;
+
+    return {
+        allTimeMaxScore: allTimeMaxScore,
+        allTimeMaxPlayers: allTimeMaxPlayers,
+        allTimeMinScore: allTimeMinScore,
+        allTimeMinPlayers: allTimeMinPlayers,
+        roundMaxScore: roundMaxDisplay,
+        roundMaxPlayers: roundMaxPlayers,
+        roundMinScore: roundMinDisplay,
+        roundMinPlayers: roundMinPlayers
+    };
+}
+
+// 关闭图表弹窗
+function closeChartModal() {
+    // 停止皇冠动画
+    stopCrownAnimation();
+    crownAnimations = [];
+
+    var overlay = document.getElementById('chartOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
 }
 
 // 显示历史记录详情
@@ -583,13 +1391,13 @@ function showAbout() {
     var content = document.createElement('div');
     content.className = 'about-inner';
     content.innerHTML =
-        '<div class="about-title">花牌记分器 V0.2.3</div>' +
+        '<div class="about-title">花牌记分器 V0.2.4</div>' +
         '<div class="about-info"><span class="about-label">描述：</span>用于2-6人的花牌记分工具</div>' +
         '<div class="about-info"><span class="about-label">开发者：</span>SmalBox</div>' +
         '<div class="about-info"><span class="about-label">功能列表：</span></div>' +
         '<div class="about-info" style="padding-left: 0.3rem; line-height: 2;">' +
         '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
-        '<span style="color: #ffca71;">新增功能（V0.2.3）：历史记录查看与管理</span><br/>' +
+        '<span style="color: #ffca71;">新增功能（V0.2.4）：轮次显示、得分趋势图、统计信息、皇冠排名动画</span><br/>' +
         '扩展功能：添加到桌面（PWA）、更多菜单' +
         '</div>';
 
