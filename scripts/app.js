@@ -499,8 +499,8 @@ function showHistoryChart(fileName) {
     // 创建统计信息容器（HTML）
     var statsContainer = document.createElement('div');
     statsContainer.className = 'stats-container stats-slide-in';
-    statsContainer.style.marginTop = '15px';
-    statsContainer.style.padding = '15px';
+    statsContainer.style.marginTop = '-0.5rem';
+    statsContainer.style.padding = '0.2rem';
 
     // 计算统计信息
     var stats = calculateStats(records);
@@ -805,12 +805,13 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
         xsmall: Math.round(13 * scale)
     };
     var lineWidth = {
-        normal: Math.max(1, Math.round(1 * scale)),
-        medium: Math.max(2, Math.round(2 * scale)),
-        thick: Math.max(3, Math.round(3 * scale))
+        normal: Math.round(1.5 * scale),   // 网格线、虚线
+        medium: Math.round(2.5 * scale),   // 坐标轴、数据点描边
+        thick: Math.round(4 * scale)       // 折线
     };
-    var pointRadius = Math.max(4, Math.round(6 * scale));
-    var legendDotRadius = Math.max(8, Math.round(12 * scale));
+    var pointRadius = Math.round(8 * scale);  // 数据点半径
+    // 图例颜色点大小（与字体大小成比例，约0.25倍）
+    var legendDotRadius = Math.max(4, Math.round(fontSize.large * 0.25));
 
     // 顶部图例区域高度
     var legendItemHeight = Math.round(36 * scale);
@@ -1116,7 +1117,7 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
 
                     // 计算名字在图表右侧的位置（从上到下排列）
                     var labelY = padding.top + Math.round(10 * scale) + playerIndex * Math.round(90 * scale);
-                    var labelX = width - padding.right + Math.round(2 * scale); // 在图表区域内显示
+                    var labelX = width - padding.right - Math.round(2 * scale); // 在图表区域内显示
 
                     // 绘制白线连接最后一个点和名字
                     ctx.strokeStyle = '#ffffff';
@@ -1138,7 +1139,7 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
 
                     // 如果是前三名，存储皇冠信息用于动画
                     if (playerIndex >= 0 && playerIndex <= 2) {
-                        var crownInfo = drawCrown(ctx, labelX + Math.round(2 * scale), labelY - Math.round(33 * scale), playerIndex + 1, scale);
+                        var crownInfo = drawCrown(ctx, labelX + Math.round(2 * scale), labelY - Math.round(35 * scale), playerIndex + 1, scale);
                         crownAnimations.push(crownInfo);
                     }
                 }
