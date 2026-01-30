@@ -555,9 +555,16 @@ var crownAnimationId = null;
 
 // 绘制小皇冠
 // rank: 1-金牌(金色), 2-银牌(银色), 3-铜牌(铜色)
+// scale: 比例因子，用于适配不同屏幕
 // 返回: {x, y, rank} 用于动画更新
-function drawCrown(ctx, x, y, rank) {
+function drawCrown(ctx, x, y, rank, scale) {
     ctx.save();
+
+    // 皇冠尺寸（基于比例因子）
+    var crownWidth = Math.round(30 * scale);
+    var crownHeight = Math.round(15 * scale);
+    var crownLineWidth = Math.max(1, Math.round(1 * scale));
+    var dotRadius = Math.max(1, Math.round(1.5 * scale));
 
     // 根据排名设置颜色
     var fillColor, strokeColor;
@@ -581,23 +588,23 @@ function drawCrown(ctx, x, y, rank) {
 
     ctx.fillStyle = fillColor;
     ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = crownLineWidth;
 
     // 绘制皇冠形状
     ctx.beginPath();
     // 皇冠底部
-    ctx.moveTo(x, y + 15);
-    ctx.lineTo(x + 30, y + 15);
+    ctx.moveTo(x, y + crownHeight);
+    ctx.lineTo(x + crownWidth, y + crownHeight);
     // 皇冠右侧
-    ctx.lineTo(x + 30, y + 8);
+    ctx.lineTo(x + crownWidth, y + Math.round(8 * scale));
     // 皇冠右尖
-    ctx.lineTo(x + 24, y + 12);
+    ctx.lineTo(x + Math.round(24 * scale), y + Math.round(12 * scale));
     // 皇冠中尖（最高）
-    ctx.lineTo(x + 15, y);
+    ctx.lineTo(x + Math.round(15 * scale), y);
     // 皇冠左尖
-    ctx.lineTo(x + 6, y + 12);
+    ctx.lineTo(x + Math.round(6 * scale), y + Math.round(12 * scale));
     // 皇冠左侧
-    ctx.lineTo(x, y + 8);
+    ctx.lineTo(x, y + Math.round(8 * scale));
     ctx.closePath();
 
     ctx.fill();
@@ -606,15 +613,15 @@ function drawCrown(ctx, x, y, rank) {
     // 添加闪光效果（简单的几个点）
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(x + 8, y + 6, 1.5, 0, Math.PI * 2);
-    ctx.arc(x + 15, y + 3, 1.5, 0, Math.PI * 2);
-    ctx.arc(x + 22, y + 6, 1.5, 0, Math.PI * 2);
+    ctx.arc(x + Math.round(8 * scale), y + Math.round(6 * scale), dotRadius, 0, Math.PI * 2);
+    ctx.arc(x + Math.round(15 * scale), y + Math.round(3 * scale), dotRadius, 0, Math.PI * 2);
+    ctx.arc(x + Math.round(22 * scale), y + Math.round(6 * scale), dotRadius, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
 
     // 返回皇冠信息用于动画
-    return { x: x, y: y, rank: rank, baseX: x, baseY: y };
+    return { x: x, y: y, rank: rank, baseX: x, baseY: y, scale: scale };
 }
 
 // 更新皇冠动画
@@ -635,6 +642,14 @@ function drawAnimatedCrown(ctx, crown, time) {
 
     var x = crown.baseX;
     var y = crown.baseY;
+    var scale = crown.scale || 1;
+
+    // 皇冠尺寸（基于比例因子）
+    var crownWidth = Math.round(30 * scale);
+    var crownHeight = Math.round(15 * scale);
+    var crownLineWidth = Math.max(1.5, Math.round(1.5 * scale));
+    var particleRadius = Math.max(1.5, Math.round(2 * scale));
+    var particleRadius2 = Math.max(1, Math.round(1.5 * scale));
 
     // 根据排名设置颜色
     var fillColor, strokeColor;
@@ -657,8 +672,8 @@ function drawAnimatedCrown(ctx, crown, time) {
     }
 
     // 应用脉冲缩放
-    var centerX = x + 15;
-    var centerY = y + 7;
+    var centerX = x + Math.round(15 * scale);
+    var centerY = y + Math.round(7 * scale);
     ctx.translate(centerX, centerY);
     ctx.scale(pulse, pulse);
     ctx.translate(-centerX, -centerY);
@@ -666,28 +681,28 @@ function drawAnimatedCrown(ctx, crown, time) {
     // 发光效果（金色皇冠特有）
     if (crown.rank === 1) {
         ctx.shadowColor = '#ffff87';
-        ctx.shadowBlur = 2 * glow;
+        ctx.shadowBlur = Math.round(2 * scale) * glow;
     }
 
     ctx.fillStyle = fillColor;
     ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = crownLineWidth;
 
     // 绘制皇冠形状
     ctx.beginPath();
     // 皇冠底部
-    ctx.moveTo(x, y + 15);
-    ctx.lineTo(x + 30, y + 15);
+    ctx.moveTo(x, y + crownHeight);
+    ctx.lineTo(x + crownWidth, y + crownHeight);
     // 皇冠右侧
-    ctx.lineTo(x + 30, y + 8);
+    ctx.lineTo(x + crownWidth, y + Math.round(8 * scale));
     // 皇冠右尖
-    ctx.lineTo(x + 24, y + 12);
+    ctx.lineTo(x + Math.round(24 * scale), y + Math.round(12 * scale));
     // 皇冠中尖（最高）
-    ctx.lineTo(x + 15, y);
+    ctx.lineTo(x + Math.round(15 * scale), y);
     // 皇冠左尖
-    ctx.lineTo(x + 6, y + 12);
+    ctx.lineTo(x + Math.round(6 * scale), y + Math.round(12 * scale));
     // 皇冠左侧
-    ctx.lineTo(x, y + 8);
+    ctx.lineTo(x, y + Math.round(8 * scale));
     ctx.closePath();
 
     ctx.fill();
@@ -695,20 +710,20 @@ function drawAnimatedCrown(ctx, crown, time) {
 
     // 闪光粒子效果（金色皇冠）
     if (crown.rank === 1) {
-        var particleOffset = Math.sin(time / 150) * 3;
+        var particleOffset = Math.round(Math.sin(time / 150) * 3 * scale);
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(x + 10 + particleOffset, y + 5, 2, 0, Math.PI * 2);
+        ctx.arc(x + Math.round(10 * scale) + particleOffset, y + Math.round(5 * scale), particleRadius, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
-        ctx.arc(x + 20 - particleOffset, y + 7, 1.5, 0, Math.PI * 2);
+        ctx.arc(x + Math.round(20 * scale) - particleOffset, y + Math.round(7 * scale), particleRadius2, 0, Math.PI * 2);
         ctx.fill();
     } else {
         // 银色和铜色只有简单的闪光
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(x + 15, y + 4, 1.5, 0, Math.PI * 2);
+        ctx.arc(x + Math.round(15 * scale), y + Math.round(4 * scale), particleRadius2, 0, Math.PI * 2);
         ctx.fill();
     }
 
@@ -728,10 +743,11 @@ function startCrownAnimation(ctx, canvas) {
 
         // 清除每个皇冠的区域（只清除皇冠区域，不覆盖图表内容）
         crownAnimations.forEach(function(crown) {
-            var clearX = crown.baseX - 2;
-            var clearY = crown.baseY - 2;
-            var clearWidth = 34;
-            var clearHeight = 20; // 只清除皇冠区域（高约15px）
+            var crownScale = crown.scale || 1;
+            var clearX = crown.baseX - Math.round(2 * crownScale);
+            var clearY = crown.baseY - Math.round(2 * crownScale);
+            var clearWidth = Math.round(34 * crownScale);
+            var clearHeight = Math.round(20 * crownScale); // 只清除皇冠区域
             ctx.clearRect(clearX, clearY, clearWidth, clearHeight);
         });
 
@@ -777,11 +793,37 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
     var width = size;
     var height = size;
 
+    // 定义比例因子（基于width的相对比例）
+    var scale = width / 720;  // 以720px为基准，放大50%
+
+    // 常用尺寸（基于比例因子）
+    var fontSize = {
+        large: Math.round(36 * scale),
+        medium: Math.round(28 * scale),
+        small: Math.round(25 * scale),
+        tiny: Math.round(22 * scale),
+        xsmall: Math.round(13 * scale)
+    };
+    var lineWidth = {
+        normal: Math.max(1, Math.round(1 * scale)),
+        medium: Math.max(2, Math.round(2 * scale)),
+        thick: Math.max(3, Math.round(3 * scale))
+    };
+    var pointRadius = Math.max(4, Math.round(6 * scale));
+    var legendDotRadius = Math.max(8, Math.round(12 * scale));
+
     // 顶部图例区域高度
-    var legendHeight = playerNames.length * 28 + 20;
+    var legendItemHeight = Math.round(36 * scale);
+    var legendY = Math.round(15 * scale);
+    var legendRowGap = Math.round(28 * scale);
 
     // 边距
-    var padding = { top: legendHeight + 20, right: 60, bottom: 70, left: 50 };
+    var padding = {
+        top: playerNames.length * legendRowGap + Math.round(50 * scale),
+        right: Math.round(60 * scale),
+        bottom: Math.round(70 * scale),
+        left: Math.round(50 * scale)
+    };
     var chartWidth = width - padding.left - padding.right;
     var chartHeight = height - padding.top - padding.bottom;
 
@@ -802,43 +844,39 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
 
     var maxPerRow = 3;
     var legendItemWidth = width / maxPerRow;
-    var legendY = 15;
-    var legendHeight = 36;
-    var legendColorIndex = 0;
 
     allNamesInRecords.forEach(function(name, index) {
         var row = Math.floor(index / maxPerRow);
         var col = index % maxPerRow;
         var itemX = col * legendItemWidth;
         var centerX = itemX + legendItemWidth / 2;
-        var itemY = legendY + row * legendHeight;
+        var itemY = legendY + row * legendItemHeight;
 
         // 获取颜色（优先使用已存在的颜色，否则分配新颜色）
         var color;
         if (colorMap[name]) {
             color = colorMap[name];
         } else {
-            color = colors[legendColorIndex % colors.length];
+            color = colors[allNamesInRecords.indexOf(name) % colors.length];
             colorMap[name] = color;
-            legendColorIndex++;
         }
 
         // 颜色圆块
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(centerX - 25, itemY + 16, 16, 0, Math.PI * 2);
+        ctx.arc(centerX - Math.round(25 * scale), itemY + Math.round(16 * scale), legendDotRadius, 0, Math.PI * 2);
         ctx.fill();
 
         // 玩家名字
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 36px Arial';
+        ctx.font = 'bold ' + fontSize.large + 'px Arial';
         ctx.textAlign = 'left';
-        ctx.fillText(name, centerX - 5, itemY + 24);
+        ctx.fillText(name, centerX - Math.round(5 * scale), itemY + Math.round(24 * scale));
     });
 
     // 调整顶部边距以适应图例行数
-    var legendRowCount = Math.ceil(playerNames.length / maxPerRow);
-    padding.top = legendRowCount * legendHeight + 30;
+    var legendRowCount = Math.ceil(allNamesInRecords.length / maxPerRow);
+    padding.top = legendRowCount * legendItemHeight + Math.round(30 * scale);
 
     // 获取所有得分数据范围
     var allScores = [];
@@ -854,7 +892,7 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
 
     // 绘制网格线
     ctx.strokeStyle = 'rgba(255, 202, 113, 0.2)';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = lineWidth.normal;
 
     // 水平网格线
     var yGridCount = 5;
@@ -868,15 +906,15 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
         // Y轴标签
         var scoreValue = maxScore + scorePadding - ((maxScore + scorePadding - minScore + scorePadding) / yGridCount) * i;
         ctx.fillStyle = '#ffca71';
-        ctx.font = 'bold 13px Arial';
+        ctx.font = 'bold ' + fontSize.xsmall + 'px Arial';
         ctx.textAlign = 'right';
-        ctx.fillText(Math.round(scoreValue), padding.left - 5, y + 5);
+        ctx.fillText(Math.round(scoreValue), padding.left - Math.round(5 * scale), y + Math.round(5 * scale));
     }
 
     // 垂直网格线
     var xGridCount = records.length > 1 ? Math.min(records.length - 1, 6) : 0;
     var xStep = chartWidth / Math.max(records.length, 1);
-    var xLeftGap = 30;
+    var xLeftGap = Math.round(30 * scale);
     var unitStr = xGridCount < 15?"轮":"";
     for (var i = 0; i <= xGridCount; i++) {
         var x = padding.left + xStep * i + xLeftGap;
@@ -888,14 +926,14 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
         // X轴标签
         var roundNum = Math.round((Math.max(records.length, 1) - 1) / Math.max(xGridCount, 1) * i) + 1;
         ctx.fillStyle = '#ffca71';
-        ctx.font = 'bold 22px Arial';
+        ctx.font = 'bold ' + fontSize.tiny + 'px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(roundNum + unitStr, x, height - padding.bottom + 30);
+        ctx.fillText(roundNum + unitStr, x, height - padding.bottom + Math.round(30 * scale));
     }
 
     // 绘制坐标轴
     ctx.strokeStyle = '#ffca71';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = lineWidth.medium;
     ctx.beginPath();
     ctx.moveTo(padding.left, padding.top);
     ctx.lineTo(padding.left, height - padding.bottom);
@@ -904,16 +942,16 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
 
     // X轴标题
     ctx.fillStyle = '#f1b650';
-    ctx.font = 'bold 25px Arial';
+    ctx.font = 'bold ' + fontSize.small + 'px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('轮数', width - 30, height - 40);
+    ctx.fillText('轮数', width - Math.round(30 * scale), height - Math.round(40 * scale));
 
     // Y轴标题
     ctx.save();
-    ctx.font = '22px Arial';
-    ctx.translate(25, height / 2);
+    ctx.font = fontSize.tiny + 'px Arial';
+    ctx.translate(Math.round(25 * scale), height / 2);
     ctx.rotate(-Math.PI / 2);
-    ctx.fillText('累计得分', 0, -5);
+    ctx.fillText('累计得分', 0, -Math.round(5 * scale));
     ctx.restore();
 
     // 绘制折线
@@ -1016,7 +1054,7 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
 
                 // 绘制折线
                 ctx.strokeStyle = color;
-                ctx.lineWidth = 3;
+                ctx.lineWidth = lineWidth.thick;
                 ctx.beginPath();
                 points.forEach(function(point, idx) {
                     if (idx === 0) {
@@ -1027,7 +1065,7 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
                 });
                 ctx.stroke();
 
-                ctx.font = '22px Arial';
+                ctx.font = fontSize.tiny + 'px Arial';
                 // 绘制数据点
                 points.forEach(function(point, idx) {
                     var roundIdx = rounds[idx].roundIndex;
@@ -1037,24 +1075,24 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
 
                     ctx.fillStyle = color;
                     ctx.beginPath();
-                    ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                    ctx.arc(point.x, point.y, pointRadius, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.strokeStyle = '#004876';
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = lineWidth.medium;
                     ctx.stroke();
 
                     // 只在最大值和最小值点显示分数标签
                     if (isMax || isMin) {
                         if (isMax) {
                             ctx.fillStyle = '#d5bb2a'; // 最大值亮金色
-                            ctx.fillText(point.sumScore, point.x - 16, point.y - 10); // 正上方
+                            ctx.fillText(point.sumScore, point.x - Math.round(16 * scale), point.y - Math.round(10 * scale)); // 正上方
                         } else if (isMin) {
                             ctx.fillStyle = '#ac4343'; // 最小值亮红色
-                            ctx.fillText(point.sumScore, point.x - 22, point.y + 30); // 正下方
+                            ctx.fillText(point.sumScore, point.x - Math.round(22 * scale), point.y + Math.round(30 * scale)); // 正下方
                         }
                     }
                 });
-                ctx.font = 'bold 25px Arial';
+                ctx.font = 'bold ' + fontSize.small + 'px Arial';
 
                 // 只在最后一轮存在的玩家名字才显示在右侧
                 var nameExistsInLastRound = false;
@@ -1077,30 +1115,30 @@ function drawLineChart(canvas, records, playerNames, colorMap) {
                     }
 
                     // 计算名字在图表右侧的位置（从上到下排列）
-                    var labelY = padding.top + 25 + playerIndex * 90;
-                    var labelX = width - padding.right + 2; // 在图表区域内显示
+                    var labelY = padding.top + Math.round(10 * scale) + playerIndex * Math.round(90 * scale);
+                    var labelX = width - padding.right + Math.round(2 * scale); // 在图表区域内显示
 
                     // 绘制白线连接最后一个点和名字
                     ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 1;
-                    ctx.setLineDash([3, 3]); // 虚线
+                    ctx.lineWidth = lineWidth.normal;
+                    ctx.setLineDash([Math.round(3 * scale), Math.round(3 * scale)]); // 虚线
                     ctx.beginPath();
                     ctx.moveTo(lastPoint.x, lastPoint.y);
-                    ctx.lineTo(labelX + 5, labelY);
+                    ctx.lineTo(labelX + Math.round(5 * scale), labelY);
                     ctx.stroke();
                     ctx.setLineDash([]); // 恢复实线
 
                     // 绘制名字和最终得分
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 28px Arial';
+                    ctx.font = 'bold ' + fontSize.medium + 'px Arial';
                     ctx.textAlign = 'left';
-                    ctx.fillText(name, labelX, labelY + 8);
+                    ctx.fillText(name, labelX, labelY + Math.round(8 * scale));
                     ctx.fillStyle = lastPoint.sumScore >= 0?'#ffd700':'#be3e3e';
-                    ctx.fillText(lastPoint.sumScore, labelX, labelY + 8 + 30);
+                    ctx.fillText(lastPoint.sumScore, labelX, labelY + Math.round(8 * scale) + Math.round(30 * scale));
 
                     // 如果是前三名，存储皇冠信息用于动画
                     if (playerIndex >= 0 && playerIndex <= 2) {
-                        var crownInfo = drawCrown(ctx, labelX + 2, labelY - 33, playerIndex + 1);
+                        var crownInfo = drawCrown(ctx, labelX + Math.round(2 * scale), labelY - Math.round(33 * scale), playerIndex + 1, scale);
                         crownAnimations.push(crownInfo);
                     }
                 }
