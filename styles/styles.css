@@ -626,6 +626,16 @@ input {
     color: #ffca71;
 }
 
+#fingerprintContainer {
+    text-align: center;
+}
+
+#fingerprintContainer img {
+    display: inline-block;
+    padding: 2px;
+    background-color: rgba(255, 202, 113, 0.1);
+}
+
 /* ========== 动画样式 ========== */
 
 /* 弹窗打开动画 */

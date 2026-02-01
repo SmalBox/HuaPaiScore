@@ -13,6 +13,237 @@ function AdaptationPage()
 }
 AdaptationPage();
 
+// ==================== 简单的 MD5 实现 ====================
+function md5cycle(x, k) {
+    var a = x[0], b = x[1], c = x[2], d = x[3];
+    a = ff(a, b, c, d, k[0], 7, -680876936);
+    d = ff(d, a, b, c, k[1], 12, -389564586);
+    c = ff(c, d, a, b, k[2], 17, 606105819);
+    b = ff(b, c, d, a, k[3], 22, -1044525330);
+    a = ff(a, b, c, d, k[4], 7, -176418897);
+    d = ff(d, a, b, c, k[5], 12, 1200080426);
+    c = ff(c, d, a, b, k[6], 17, -1473231341);
+    b = ff(b, c, d, a, k[7], 22, -45705983);
+    a = ff(a, b, c, d, k[8], 7, 1770035416);
+    d = ff(d, a, b, c, k[9], 12, -1958414417);
+    c = ff(c, d, a, b, k[10], 17, -42063);
+    b = ff(b, c, d, a, k[11], 22, -1990404162);
+    a = ff(a, b, c, d, k[12], 7, 1804603682);
+    d = ff(d, a, b, c, k[13], 12, -40341101);
+    c = ff(c, d, a, b, k[14], 17, -1502002290);
+    b = ff(b, c, d, a, k[15], 22, 1236535329);
+    a = gg(a, b, c, d, k[1], 5, -165796510);
+    d = gg(d, a, b, c, k[6], 9, -1069501632);
+    c = gg(c, d, a, b, k[11], 14, 643717713);
+    b = gg(b, c, d, a, k[0], 20, -373897302);
+    a = gg(a, b, c, d, k[5], 5, -701558691);
+    d = gg(d, a, b, c, k[10], 9, 38016083);
+    c = gg(c, d, a, b, k[15], 14, -660478335);
+    b = gg(b, c, d, a, k[4], 20, -405537848);
+    a = gg(a, b, c, d, k[9], 5, 568446438);
+    d = gg(d, a, b, c, k[14], 9, -1019803690);
+    c = gg(c, d, a, b, k[3], 14, -187363961);
+    b = gg(b, c, d, a, k[8], 20, 1163531501);
+    a = gg(a, b, c, d, k[13], 5, -1444681467);
+    d = gg(d, a, b, c, k[2], 9, -51403784);
+    c = gg(c, d, a, b, k[7], 14, 1735328473);
+    b = gg(b, c, d, a, k[12], 20, -1926607734);
+    a = hh(a, b, c, d, k[5], 4, -378558);
+    d = hh(d, a, b, c, k[8], 11, -2022574463);
+    c = hh(c, d, a, b, k[11], 16, 1839030562);
+    b = hh(b, c, d, a, k[14], 23, -35309556);
+    a = hh(a, b, c, d, k[1], 4, -1530992060);
+    d = hh(d, a, b, c, k[4], 11, 1272893353);
+    c = hh(c, d, a, b, k[7], 16, -155497632);
+    b = hh(b, c, d, a, k[10], 23, -1094730640);
+    a = hh(a, b, c, d, k[13], 4, 681279174);
+    d = hh(d, a, b, c, k[0], 11, -358537222);
+    c = hh(c, d, a, b, k[3], 16, -722521979);
+    b = hh(b, c, d, a, k[6], 23, 76029189);
+    a = hh(a, b, c, d, k[9], 4, -640364487);
+    d = hh(d, a, b, c, k[12], 11, -421815835);
+    c = hh(c, d, a, b, k[15], 16, 530742520);
+    b = hh(b, c, d, a, k[2], 23, -995338651);
+    a = ii(a, b, c, d, k[0], 6, -198630844);
+    d = ii(d, a, b, c, k[7], 10, 1126891415);
+    c = ii(c, d, a, b, k[14], 15, -1416354905);
+    b = ii(b, c, d, a, k[5], 21, -57434055);
+    a = ii(a, b, c, d, k[12], 6, 1700485571);
+    d = ii(d, a, b, c, k[3], 10, -1894986606);
+    c = ii(c, d, a, b, k[10], 15, -1051523);
+    b = ii(b, c, d, a, k[1], 21, -2054922799);
+    a = ii(a, b, c, d, k[8], 6, 1873313359);
+    d = ii(d, a, b, c, k[15], 10, -30611744);
+    c = ii(c, d, a, b, k[6], 15, -1560198380);
+    b = ii(b, c, d, a, k[13], 21, 1309151649);
+    a = ii(a, b, c, d, k[4], 6, -145523070);
+    d = ii(d, a, b, c, k[11], 10, -1120210379);
+    c = ii(c, d, a, b, k[2], 15, 718787259);
+    b = ii(b, c, d, a, k[9], 21, -343485551);
+    x[0] = add32(a, x[0]);
+    x[1] = add32(b, x[1]);
+    x[2] = add32(c, x[2]);
+    x[3] = add32(d, x[3]);
+}
+
+function cmn(q, a, b, x, s, t) {
+    a = add32(add32(a, q), add32(x, t));
+    return add32((a << s) | (a >>> (32 - s)), b);
+}
+
+// 添加 add32 别名（兼容 cmn 函数）
+var add32 = md5_add32;
+
+function ff(a, b, c, d, x, s, t) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
+function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
+function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
+
+function md5blk(s) {
+    var md5blks = [];
+    for (var i = 0; i < 64; i += 4) {
+        var code1 = s.charCodeAt(i) || 0;
+        var code2 = s.charCodeAt(i + 1) || 0;
+        var code3 = s.charCodeAt(i + 2) || 0;
+        var code4 = s.charCodeAt(i + 3) || 0;
+        md5blks[i >> 2] = code1 + (code2 << 8) + (code3 << 16) + (code4 << 24);
+    }
+    return md5blks;
+}
+
+function md5blk_array(a) {
+    var md5blks = [];
+    for (var i = 0; i < 64; i += 4) {
+        md5blks[i >> 2] = a[i] + (a[i + 1] << 8) + (a[i + 2] << 16) + (a[i + 3] << 24);
+    }
+    return md5blks;
+}
+
+function md5_f(x, y, z) { return z ^ (x & (y ^ z)); }
+function md5_g(x, y, z) { return y ^ (z & (x ^ y)); }
+function md5_h(x, y, z) { return x ^ y ^ z; }
+function md5_i(x, y, z) { return y ^ (x | ~z); }
+
+function md5_cmn(q, a, b, x, s, t) {
+    a = md5_add32(a, md5_add32(md5_add32(md5_f(a, b, c, d, x[s + 0], 7, -680876936), q), x[s + 1], 12, -389564586), x[s + 2], 17, 606105819);
+    d = md5_add32(d, md5_f(d, a, b, c, x[s + 3], 22, -1044525330));
+    return md5_add32(a, d);
+}
+
+function md5_add32(a, b) {
+    return (a + b) & 0xFFFFFFFF;
+}
+
+function md5_hex(x) {
+    var hex = [];
+    var hex_chr = "0123456789abcdef";
+    // x 是数组 [a, b, c, d]，每个是32位值
+    for (var k = 0; k < x.length; k++) {
+        var val = x[k];
+        // 处理有符号32位整数
+        if (val < 0) val = val + 0x100000000;
+        for (var j = 0; j < 8; j++) {
+            hex.push(hex_chr.charAt((val >> (j * 4)) & 0x0F));
+        }
+    }
+    return hex.join('');
+}
+
+function md5_respect(s) {
+    var n = s.length;
+    var state = [1732584193, -271733879, -1732584194, 271733878];
+    var i = 0;
+    // 处理完整的 64 字节块
+    for (i = 64; i <= n; i += 64) {
+        md5cycle(state, md5blk(s.substring(i - 64, i)));
+    }
+    // 处理剩余部分
+    var remaining = n - (i - 64);
+    if (remaining > 0) {
+        s = s.substring(i - 64);
+        var tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (i = 0; i < s.length; i++) tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
+        tail[i % 4] |= 0x80 << ((i % 4) << 3);
+        if (i > 55) {
+            md5cycle(state, tail);
+            for (i = 0; i < 16; i++) tail[i] = 0;
+        }
+        tail[14] = n * 8;
+        md5cycle(state, tail);
+    }
+    return md5_hex(state);
+}
+
+function md5Res(data) {
+    if (typeof data === 'string') {
+        return md5_respect(data);
+    } else {
+        // 处理二进制数据
+        var s = '';
+        for (var i = 0; i < data.length; i++) {
+            s += String.fromCharCode(data[i]);
+        }
+        return md5_respect(s);
+    }
+}
+
+// ==================== Canvas 指纹 ====================
+// 生成 Canvas 指纹
+function getCanvasFingerprint() {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+
+    // 设置尺寸
+    canvas.width = 280 * dpr;
+    canvas.height = 60 * dpr;
+
+    // 绘制复杂的图形和文字（包含特殊字符、渐变、混合模式）
+    ctx.scale(dpr, dpr);
+
+    // 背景
+    ctx.fillStyle = '#004876';
+    ctx.fillRect(0, 0, 280, 60);
+
+    // 绘制文字（使用特殊字符和不同字体）
+    ctx.textBaseline = 'middle';
+    ctx.font = '18px Arial, "Microsoft YaHei", sans-serif';
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText('HuaPaiScore', 10, 20);
+
+    ctx.font = 'bold 16px "Courier New", monospace';
+    ctx.fillStyle = '#ff6b6b';
+    ctx.fillText('花牌记分器 1234567890', 10, 42);
+
+    // 添加渐变效果
+    var gradient = ctx.createLinearGradient(0, 0, 280, 0);
+    gradient.addColorStop(0, 'rgba(255, 202, 113, 0.8)');
+    gradient.addColorStop(1, 'rgba(72, 249, 36, 0.8)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(100, 15, 170, 30);
+
+    // 绘制形状
+    ctx.beginPath();
+    ctx.arc(240, 30, 15, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(61, 198, 179, 0.6)';
+    ctx.fill();
+
+    // 导出 Base64 数据
+    var dataURI = canvas.toDataURL('image/png');
+    return dataURI;
+}
+
+// 获取指纹并存储（页面加载时生成）
+var canvasFingerprint = getCanvasFingerprint();
+console.log('Canvas指纹长度:', canvasFingerprint.length);
+
+// 测试 MD5 函数（用已知结果验证）
+var testMd5 = md5Res('hello');
+console.log('MD5("hello") 测试:', testMd5, '(正确值: 5d41402abc4b2a76b9719d911017c592)');
+
+var canvasFingerprintMD5 = md5Res(canvasFingerprint);
+console.log('Canvas指纹MD5:', canvasFingerprintMD5);
+
 // 初始化页面回合数据，读取最后一回合数据初始化页面
 function InitRoundData()
 {
@@ -1429,18 +1660,67 @@ function showAbout() {
     // 关于内容
     var content = document.createElement('div');
     content.className = 'about-inner';
-    content.innerHTML =
-        '<div class="about-title">花牌记分器 V0.2.4</div>' +
-        '<div class="about-info"><span class="about-label">描述：</span>用于2-6人的花牌记分工具</div>' +
-        '<div class="about-info"><span class="about-label">开发者：</span>SmalBox</div>' +
-        '<div class="about-info"><span class="about-label">功能列表：</span></div>' +
-        '<div class="about-info" style="padding-left: 0.3rem; line-height: 2;">' +
+
+    var titleElem = document.createElement('div');
+    titleElem.className = 'about-title';
+    titleElem.textContent = '花牌记分器 V0.2.5';
+    content.appendChild(titleElem);
+
+    var descInfo = document.createElement('div');
+    descInfo.className = 'about-info';
+    descInfo.innerHTML = '<span class="about-label">描述：</span>用于2-6人的花牌记分工具';
+    content.appendChild(descInfo);
+
+    var devInfo = document.createElement('div');
+    devInfo.className = 'about-info';
+    devInfo.innerHTML = '<span class="about-label">开发者：</span>SmalBox';
+    content.appendChild(devInfo);
+
+    var featureInfo = document.createElement('div');
+    featureInfo.className = 'about-info';
+    featureInfo.innerHTML = '<span class="about-label">功能列表：</span>';
+    content.appendChild(featureInfo);
+
+    var featureList = document.createElement('div');
+    featureList.className = 'about-info';
+    featureList.style.paddingLeft = '0.3rem';
+    featureList.style.lineHeight = '2';
+    featureList.innerHTML =
         '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
-        '<span style="color: #ffca71;">新增功能（V0.2.4）：轮次显示、得分趋势图、统计信息、皇冠排名动画</span><br/>' +
-        '扩展功能：添加到桌面（PWA）、更多菜单' +
-        '</div>';
+        '<span style="color: #ffca71;">新增功能（V0.2.5）：用户标识（Canvas 指纹）</span><br/>' +
+        '扩展功能：添加到桌面（PWA）、更多菜单';
+    content.appendChild(featureList);
+
+    // Canvas 指纹区域
+    var fingerprintInfo = document.createElement('div');
+    fingerprintInfo.className = 'about-info';
+    fingerprintInfo.style.marginTop = '0.3rem';
+    fingerprintInfo.style.paddingTop = '0.2rem';
+    fingerprintInfo.style.borderTop = '1px dashed rgba(255, 202, 113, 0.3)';
+    fingerprintInfo.innerHTML = '<span class="about-label">用户标识：</span>';
+
+    // 创建指纹容器
+    var fingerprintContainer = document.createElement('div');
+    fingerprintContainer.style.marginTop = '0.1rem';
+
+    // 显示 Canvas 指纹 MD5 哈希
+    if (canvasFingerprintMD5) {
+        var textElem = document.createElement('div');
+        textElem.style.fontFamily = 'monospace';
+        textElem.style.fontSize = '0.22rem';
+        textElem.style.color = '#ffd700';
+        textElem.style.letterSpacing = '0.05rem';
+        textElem.textContent = canvasFingerprintMD5;
+        fingerprintContainer.appendChild(textElem);
+    } else {
+        fingerprintContainer.textContent = '无法生成指纹';
+    }
+
+    fingerprintInfo.appendChild(fingerprintContainer);
+    content.appendChild(fingerprintInfo);
 
     modal.appendChild(content);
+
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 }
