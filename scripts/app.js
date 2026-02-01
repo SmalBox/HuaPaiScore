@@ -480,33 +480,193 @@ function recordSettlementData(round) {
             os: deviceInfo.os,
             browser: deviceInfo.browser,
             browserVersion: deviceInfo.browserVersion
+        },
+        user: {
+            nickname: getUserNickname() || ''
         }
     };
 
-    // 获取指纹ID（格式：HuaPaiScore_<昵称>_<指纹ID>）
-    var nickname = getUserNickname() || 'Unknown';
-    // 清理昵称中的特殊字符（只保留字母、数字、中文）
-    var cleanNickname = nickname.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
-    var fingerprintId = canvasFingerprintMD5 ? 'HuaPaiScore_' + cleanNickname + '_' + canvasFingerprintMD5 : '';
+    // 获取指纹ID（格式：HuaPaiScore_<指纹ID>）
+    var fingerprintId = canvasFingerprintMD5 ? 'HuaPaiScore_' + canvasFingerprintMD5 : '';
     if (!fingerprintId) {
         console.log('访问统计：无法获取指纹ID，跳过记录');
         return;
     }
 
-    // 构建API URL
-    var content = encodeURIComponent(JSON.stringify(data));
-    var url = STATS_API_BASE + '/store?id=' + fingerprintId + '&content=' + content;
+    // 获取当前使用次数，加一后存储
+    var getUrl = STATS_API_BASE + '/retrieve?id=' + fingerprintId;
+    fetch(getUrl)
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(result) {
+            // 解析当前使用次数
+            var currentCount = 1; // 默认从1开始
+            var isFirstRecord = true; // 标记是否首次记录
 
-    // 发送请求
+            try {
+                var responseData = JSON.parse(result);
+                if (responseData && responseData.status === 'success' && responseData.content) {
+                    // 查询成功，获取已有的使用次数
+                    var contentData = JSON.parse(decodeURIComponent(responseData.content));
+                    if (contentData && contentData.count !== undefined) {
+                        currentCount = contentData.count + 1;
+                        isFirstRecord = false;
+                    }
+                }
+                // 如果查询失败（记录不存在），保持默认 currentCount = 1，isFirstRecord = true
+            } catch (e) {
+                // 解析失败，保持默认
+            }
+
+            // 首次记录：使用原始游戏数据；非首次：创建新的数据对象存储本次结算
+            var settlementData;
+            if (isFirstRecord) {
+                // 首次记录，直接使用当前游戏数据并添加 count
+                settlementData = data;
+                settlementData.count = currentCount;
+            } else {
+                // 非首次记录，创建新的数据对象（保留完整游戏数据）
+                settlementData = {
+                    version: data.version,
+                    timestamp: data.timestamp,
+                    gameInfo: data.gameInfo,
+                    players: data.players,
+                    device: data.device,
+                    user: data.user,
+                    count: currentCount
+                };
+            }
+
+            // 构建API URL
+            var content = encodeURIComponent(JSON.stringify(settlementData));
+            var storeUrl = STATS_API_BASE + '/store?id=' + fingerprintId + '&content=' + content;
+
+            // 发送存储请求
+            return fetch(storeUrl);
+        })
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(result) {
+            // 更新软件累计总使用次数
+            updateTotalUsageCount();
+            console.log('访问统计记录成功, 使用次数已更新');
+        })
+        .catch(function(error) {
+            console.log('访问统计记录失败:', error);
+        });
+}
+
+// 更新软件累计总使用次数
+function updateTotalUsageCount() {
+    var totalId = 'HuaPaiScoreUsedTimes';
+    var getUrl = STATS_API_BASE + '/retrieve?id=' + totalId;
+
+    fetch(getUrl)
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(result) {
+            var currentTotalCount = 1; // 默认从1开始
+            try {
+                var responseData = JSON.parse(result);
+                if (responseData && responseData.status === 'success' && responseData.content) {
+                    var contentData = JSON.parse(decodeURIComponent(responseData.content));
+                    if (contentData && contentData.count !== undefined) {
+                        currentTotalCount = contentData.count + 1;
+                    }
+                }
+            } catch (e) {
+                // 解析失败，保持默认
+            }
+
+            // 存储新的总次数
+            var totalData = { count: currentTotalCount };
+            var content = encodeURIComponent(JSON.stringify(totalData));
+            var storeUrl = STATS_API_BASE + '/store?id=' + totalId + '&content=' + content;
+
+            return fetch(storeUrl);
+        })
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(result) {
+            console.log('软件累计使用次数已更新');
+        })
+        .catch(function(error) {
+            console.log('更新累计使用次数失败:', error);
+        });
+}
+
+// 获取用户结算次数（用户自己的使用次数）
+function getUserSettlementCount(callback) {
+    var fingerprintId = canvasFingerprintMD5 ? 'HuaPaiScore_' + canvasFingerprintMD5 : '';
+    if (!fingerprintId) {
+        callback(0);
+        return;
+    }
+
+    var url = STATS_API_BASE + '/retrieve?id=' + fingerprintId;
     fetch(url)
         .then(function(response) {
             return response.text();
         })
         .then(function(result) {
-            console.log('访问统计记录成功:', result);
+            try {
+                var data = JSON.parse(result);
+                // 检查是否成功
+                if (data && data.status === 'success' && data.content) {
+                    var contentData = JSON.parse(decodeURIComponent(data.content));
+                    if (contentData && contentData.count !== undefined) {
+                        callback(contentData.count);
+                    } else {
+                        callback(0);
+                    }
+                } else {
+                    // 查询失败或记录不存在，次数为0
+                    callback(0);
+                }
+            } catch (e) {
+                callback(0);
+            }
         })
         .catch(function(error) {
-            console.log('访问统计记录失败:', error);
+            console.log('获取使用次数失败:', error);
+            callback(0);
+        });
+}
+
+// 获取软件累计总使用次数（所有用户共用）
+function getTotalUsageCount(callback) {
+    var totalId = 'HuaPaiScoreUsedTimes';
+    var url = STATS_API_BASE + '/retrieve?id=' + totalId;
+    fetch(url)
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(result) {
+            try {
+                var data = JSON.parse(result);
+                // 检查是否成功
+                if (data && data.status === 'success' && data.content) {
+                    var contentData = JSON.parse(decodeURIComponent(data.content));
+                    if (contentData && contentData.count !== undefined) {
+                        callback(contentData.count);
+                    } else {
+                        callback(0);
+                    }
+                } else {
+                    // 查询失败或记录不存在，次数为0
+                    callback(0);
+                }
+            } catch (e) {
+                callback(0);
+            }
+        })
+        .catch(function(error) {
+            console.log('获取累计使用次数失败:', error);
+            callback(0);
         });
 }
 
@@ -579,26 +739,6 @@ function updateRoundIndicator() {
         indicator.textContent = "第 " + roundNum + " 轮";
     }
 }
-
-// 初始化用户昵称显示
-function initUserNicknameDisplay() {
-    var nicknameDisplay = document.getElementById('userNicknameDisplay');
-    if (nicknameDisplay) {
-        var nickname = getUserNickname();
-        if (nickname) {
-            nicknameDisplay.textContent = nickname;
-            // 添加点击事件，显示用户信息
-            nicknameDisplay.onclick = function() {
-                showUserInfo();
-            };
-            nicknameDisplay.style.cursor = 'pointer';
-            nicknameDisplay.title = '点击查看用户信息';
-        } else {
-            nicknameDisplay.textContent = '';
-        }
-    }
-}
-
 function UpdateViewRoundData()
 {
     // 本地获取roundData json对象
@@ -650,6 +790,20 @@ function UpdateViewMessageBox(msg)
     }
 }
 
+// 初始化用户昵称显示
+function initUserNicknameDisplay() {
+    var nicknameDisplay = document.getElementById('userNicknameDisplay');
+    if (nicknameDisplay) {
+        var nickname = getUserNickname();
+        if (nickname) {
+            nicknameDisplay.textContent = nickname;
+            nicknameDisplay.onclick = function() { showUserInfo(); };
+            nicknameDisplay.style.cursor = 'pointer';
+            nicknameDisplay.title = '点击查看用户信息';
+        }
+    }
+}
+
 // 启动时检查昵称
 function startupCheck() {
     if (checkNicknameRequired()) {
@@ -676,10 +830,12 @@ if ('serviceWorker' in navigator) {
 
 var btnPwaSupport = document.getElementById("btnPwaSupport");
 var messageBox = document.getElementById("messageBox");
-btnPwaSupport.addEventListener("click", (event) => {
-    //messageBox.textContent = "是否支持PWA：" + ("serviceWorker" in navigator);
-    UpdateViewMessageBox("是否支持PWA：" + ("serviceWorker" in navigator));
-}, false);
+if (btnPwaSupport) {
+    btnPwaSupport.addEventListener("click", (event) => {
+        //messageBox.textContent = "是否支持PWA：" + ("serviceWorker" in navigator);
+        UpdateViewMessageBox("是否支持PWA：" + ("serviceWorker" in navigator));
+    }, false);
+}
 
 // 重置累计分数，本轮得分
 function Reset()
@@ -1934,6 +2090,21 @@ function showUserInfo() {
         '<div class="user-info-value monospace"><span id="displayUserId">' + (canvasFingerprintMD5 || '未知') + '</span></div>';
     content.appendChild(idRow);
 
+    // 结算次数
+    var countRow = document.createElement('div');
+    countRow.className = 'user-info-item';
+    countRow.innerHTML = '<span class="user-info-label">结算次数</span>' +
+        '<div class="user-info-value"><span id="displaySettlementCount">加载中...</span></div>';
+    content.appendChild(countRow);
+
+    // 获取并显示结算次数
+    getUserSettlementCount(function(count) {
+        var countElem = document.getElementById('displaySettlementCount');
+        if (countElem) {
+            countElem.textContent = count + ' 次';
+        }
+    });
+
     modal.appendChild(content);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
@@ -1950,9 +2121,7 @@ function closeUserInfoModal() {
 // 编辑昵称
 function editNickname() {
     var nicknameSpan = document.getElementById('displayNickname');
-    if (!nicknameSpan) return;
     var currentNickname = nicknameSpan.textContent;
-    var parentDiv = nicknameSpan.parentNode;
 
     // 创建输入框
     var input = document.createElement('input');
@@ -1961,79 +2130,43 @@ function editNickname() {
     input.value = currentNickname;
     input.maxLength = 20;
 
-    // 创建按钮容器
-    var btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.alignItems = 'center';
-    btnContainer.style.gap = '0.1rem';
-
-    // 保存按钮
+    // 保存和取消按钮
     var saveBtn = document.createElement('button');
     saveBtn.className = 'save-nickname-btn';
     saveBtn.textContent = '保存';
-
-    // 取消按钮
-    var cancelBtn = document.createElement('button');
-    cancelBtn.className = 'edit-nickname-btn';
-    cancelBtn.textContent = '取消';
-
-    btnContainer.appendChild(saveBtn);
-    btnContainer.appendChild(cancelBtn);
-
-    // 替换内容
-    parentDiv.innerHTML = '';
-    parentDiv.appendChild(input);
-    parentDiv.appendChild(btnContainer);
-
-    // 保存按钮事件
     saveBtn.onclick = function() {
         var newNickname = input.value.trim();
         if (newNickname) {
             saveUserNickname(newNickname);
-            restoreNicknameDisplay(newNickname);
+            nicknameSpan.textContent = newNickname;
+            // 替换回按钮
+            var parent = nicknameSpan.parentNode;
+            parent.innerHTML = '<span id="displayNickname">' + newNickname + '</span>' +
+                '<button class="edit-nickname-btn" onclick="editNickname()">修改</button>';
         }
     };
 
-    // 取消按钮事件
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'edit-nickname-btn';
+    cancelBtn.textContent = '取消';
+    cancelBtn.style.marginLeft = '0.1rem';
     cancelBtn.onclick = function() {
-        restoreNicknameDisplay(currentNickname);
+        // 恢复原样
+        var parent = nicknameSpan.parentNode;
+        parent.innerHTML = '<span id="displayNickname">' + currentNickname + '</span>' +
+            '<button class="edit-nickname-btn" onclick="editNickname()">修改</button>';
     };
 
-    // 支持按Enter键保存
-    input.onkeypress = function(e) {
-        if (e.key === 'Enter') {
-            saveBtn.onclick();
-        }
-    };
+    // 替换内容
+    var parent = nicknameSpan.parentNode;
+    parent.innerHTML = '';
+    parent.appendChild(input);
+    parent.appendChild(saveBtn);
+    parent.appendChild(cancelBtn);
 
     // 自动聚焦并选中
     input.focus();
     input.select();
-}
-
-// 恢复昵称显示
-function restoreNicknameDisplay(nickname) {
-    var overlay = document.getElementById('userInfoOverlay');
-    if (!overlay) return;
-
-    var nicknameRow = overlay.querySelector('.user-info-item');
-    if (!nicknameRow) return;
-
-    var valueDiv = nicknameRow.querySelector('.user-info-value');
-    if (!valueDiv) return;
-
-    // 更新显示
-    valueDiv.innerHTML = '<span id="displayNickname">' + nickname + '</span>' +
-        '<button class="edit-nickname-btn" id="reEditBtn">修改</button>';
-
-    // 重新绑定按钮事件
-    var reEditBtn = document.getElementById('reEditBtn');
-    if (reEditBtn) {
-        reEditBtn.onclick = editNickname;
-    }
-
-    // 更新主界面昵称显示
-    initUserNicknameDisplay();
 }
 
 // 显示更多菜单
@@ -2150,11 +2283,8 @@ function showUserInfoInMenu(contentContainer) {
         '</div>';
     content.appendChild(nicknameRow);
 
-    // 绑定编辑按钮事件（需要在添加到DOM后获取元素）
-    var editBtn = nicknameRow.querySelector('#editNicknameBtn');
-    if (editBtn) {
-        editBtn.addEventListener('click', editNicknameInMenu);
-    }
+    // 绑定编辑按钮事件
+    document.getElementById('editNicknameBtn').addEventListener('click', editNicknameInMenu);
 
     // 用户ID
     var idRow = document.createElement('div');
@@ -2200,8 +2330,6 @@ function editNicknameInMenu() {
         var newNickname = input.value.trim();
         if (newNickname) {
             saveUserNickname(newNickname);
-            // 更新主界面昵称显示
-            initUserNicknameDisplay();
             // 重新显示用户信息
             var contentContainer = document.getElementById('menuContentContainer');
             if (contentContainer) {
@@ -2241,7 +2369,7 @@ function showAboutInMenu(contentContainer) {
 
     var titleElem = document.createElement('div');
     titleElem.className = 'about-title';
-    titleElem.textContent = '花牌记分器 V0.2.7';
+    titleElem.textContent = '花牌记分器 V0.2.8';
     content.appendChild(titleElem);
 
     var descInfo = document.createElement('div');
@@ -2254,6 +2382,34 @@ function showAboutInMenu(contentContainer) {
     devInfo.innerHTML = '<span class="about-label">开发者：</span>SmalBox';
     content.appendChild(devInfo);
 
+    // 使用次数统计（用户自己的次数）
+    var usageInfo = document.createElement('div');
+    usageInfo.className = 'about-info';
+    usageInfo.innerHTML = '<span class="about-label">我的结算次数：</span><span id="menuUserUsageCount">加载中...</span>';
+    content.appendChild(usageInfo);
+
+    // 获取并显示用户自己的使用次数
+    getUserSettlementCount(function(count) {
+        var usageElem = document.getElementById('menuUserUsageCount');
+        if (usageElem) {
+            usageElem.textContent = count + ' 次';
+        }
+    });
+
+    // 软件累计总使用次数
+    var totalUsageInfo = document.createElement('div');
+    totalUsageInfo.className = 'about-info';
+    totalUsageInfo.innerHTML = '<span class="about-label">软件累计结算次数：</span><span id="menuUsageCount">加载中...</span>';
+    content.appendChild(totalUsageInfo);
+
+    // 获取并显示软件累计总使用次数
+    getTotalUsageCount(function(count) {
+        var totalUsageElem = document.getElementById('menuUsageCount');
+        if (totalUsageElem) {
+            totalUsageElem.textContent = count + ' 次';
+        }
+    });
+
     var featureInfo = document.createElement('div');
     featureInfo.className = 'about-info';
     featureInfo.innerHTML = '<span class="about-label">功能列表：</span>';
@@ -2265,7 +2421,8 @@ function showAboutInMenu(contentContainer) {
     featureList.style.lineHeight = '2';
     featureList.innerHTML =
         '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
-        '<span style="color: #ffca71;">新增功能（V0.2.7）：用户昵称、用户信息面板</span><br/>' +
+        '<span style="color: #ffca71;">新增功能（V0.2.8）：使用次数统计</span><br/>' +
+        '新增功能（V0.2.7）：用户昵称、用户信息面板<br/>' +
         '扩展功能：添加到桌面（PWA）、更多菜单';
     content.appendChild(featureList);
 
@@ -2309,7 +2466,7 @@ function showAbout() {
 
     var titleElem = document.createElement('div');
     titleElem.className = 'about-title';
-    titleElem.textContent = '花牌记分器 V0.2.7';
+    titleElem.textContent = '花牌记分器 V0.2.8';
     content.appendChild(titleElem);
 
     var descInfo = document.createElement('div');
@@ -2322,6 +2479,34 @@ function showAbout() {
     devInfo.innerHTML = '<span class="about-label">开发者：</span>SmalBox';
     content.appendChild(devInfo);
 
+    // 使用次数统计（用户自己的次数）
+    var usageInfo = document.createElement('div');
+    usageInfo.className = 'about-info';
+    usageInfo.innerHTML = '<span class="about-label">我的结算次数：</span><span id="userUsageCount">加载中...</span>';
+    content.appendChild(usageInfo);
+
+    // 获取并显示用户自己的使用次数
+    getUserSettlementCount(function(count) {
+        var usageElem = document.getElementById('userUsageCount');
+        if (usageElem) {
+            usageElem.textContent = count + ' 次';
+        }
+    });
+
+    // 软件累计总使用次数
+    var totalUsageInfo = document.createElement('div');
+    totalUsageInfo.className = 'about-info';
+    totalUsageInfo.innerHTML = '<span class="about-label">软件累计结算次数：</span><span id="totalUsageCount">加载中...</span>';
+    content.appendChild(totalUsageInfo);
+
+    // 获取并显示软件累计总使用次数
+    getTotalUsageCount(function(count) {
+        var totalUsageElem = document.getElementById('totalUsageCount');
+        if (totalUsageElem) {
+            totalUsageElem.textContent = count + ' 次';
+        }
+    });
+
     var featureInfo = document.createElement('div');
     featureInfo.className = 'about-info';
     featureInfo.innerHTML = '<span class="about-label">功能列表：</span>';
@@ -2333,7 +2518,8 @@ function showAbout() {
     featureList.style.lineHeight = '2';
     featureList.innerHTML =
         '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
-        '<span style="color: #ffca71;">新增功能（V0.2.7）：用户昵称、用户信息面板</span><br/>' +
+        '<span style="color: #ffca71;">新增功能（V0.2.8）：使用次数统计</span><br/>' +
+        '新增功能（V0.2.7）：用户昵称、用户信息面板<br/>' +
         '扩展功能：添加到桌面（PWA）、更多菜单';
     content.appendChild(featureList);
 
