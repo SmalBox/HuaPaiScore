@@ -318,8 +318,8 @@ function showNicknameInput() {
             closeNicknameInput();
             // 初始化页面数据
             InitRoundData();
-            // 初始化用户昵称显示
-            initUserNicknameDisplay();
+            // 延迟初始化用户昵称显示，确保DOM更新完成
+            setTimeout(initUserNicknameDisplay, 10);
         } else {
             input.focus();
             input.style.borderColor = '#ff6b6b';
