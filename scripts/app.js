@@ -2283,9 +2283,6 @@ function showUserInfoInMenu(contentContainer) {
         '</div>';
     content.appendChild(nicknameRow);
 
-    // 绑定编辑按钮事件
-    document.getElementById('editNicknameBtn').addEventListener('click', editNicknameInMenu);
-
     // 用户ID
     var idRow = document.createElement('div');
     idRow.className = 'user-info-item';
@@ -2293,7 +2290,28 @@ function showUserInfoInMenu(contentContainer) {
         '<div class="user-info-value monospace"><span id="displayUserId">' + (canvasFingerprintMD5 || '未知') + '</span></div>';
     content.appendChild(idRow);
 
+    // 我的结算次数
+    var countRow = document.createElement('div');
+    countRow.className = 'user-info-item';
+    countRow.innerHTML = '<span class="user-info-label">我的结算次数</span>' +
+        '<div class="user-info-value"><span id="displaySettlementCount">加载中...</span></div>';
+    content.appendChild(countRow);
+
+    // 获取并显示用户结算次数
+    getUserSettlementCount(function(count) {
+        var countElem = document.getElementById('displaySettlementCount');
+        if (countElem) {
+            countElem.textContent = count + ' 次';
+        }
+    });
+
     contentContainer.appendChild(content);
+
+    // 绑定编辑按钮事件（确保元素已添加到DOM后再绑定）
+    var editBtn = document.getElementById('editNicknameBtn');
+    if (editBtn) {
+        editBtn.addEventListener('click', editNicknameInMenu);
+    }
 }
 
 // 在菜单内编辑昵称
