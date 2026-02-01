@@ -244,6 +244,272 @@ console.log('MD5("hello") 测试:', testMd5, '(正确值: 5d41402abc4b2a76b9719d
 var canvasFingerprintMD5 = md5Res(canvasFingerprint);
 console.log('Canvas指纹MD5:', canvasFingerprintMD5);
 
+// ==================== 用户昵称功能 ====================
+// 存储用户昵称
+function saveUserNickname(nickname) {
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("userNickname", nickname.trim());
+        console.log('用户昵称已保存:', nickname);
+        return true;
+    }
+    return false;
+}
+
+// 读取用户昵称
+function getUserNickname() {
+    if (typeof(Storage) !== "undefined") {
+        return localStorage.getItem("userNickname") || '';
+    }
+    return '';
+}
+
+// 检查是否需要显示昵称输入界面
+function checkNicknameRequired() {
+    return getUserNickname() === '';
+}
+
+// 显示昵称输入全屏界面
+function showNicknameInput() {
+    // 检查是否已存在
+    var existingOverlay = document.getElementById('nicknameOverlay');
+    if (existingOverlay) {
+        return;
+    }
+
+    // 创建全屏遮罩
+    var overlay = document.createElement('div');
+    overlay.id = 'nicknameOverlay';
+    overlay.className = 'modal-overlay nickname-overlay';
+    overlay.style.zIndex = '9999';
+
+    // 创建弹窗
+    var modal = document.createElement('div');
+    modal.className = 'modal-content nickname-modal';
+
+    // 标题
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.innerHTML = '<span>欢迎使用【🎴花牌记分器】</span>';
+    modal.appendChild(title);
+
+    // 内容
+    var content = document.createElement('div');
+    content.className = 'nickname-content';
+
+    var tip = document.createElement('div');
+    tip.className = 'nickname-tip';
+    tip.textContent = '请输入您的昵称';
+    content.appendChild(tip);
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'nickname-input';
+    input.placeholder = '请输入昵称';
+    input.maxLength = 20;
+    content.appendChild(input);
+
+    var btn = document.createElement('button');
+    btn.className = 'functionButton nickname-btn';
+    btn.textContent = '确 认';
+    btn.onclick = function() {
+        var nickname = input.value.trim();
+        if (nickname) {
+            saveUserNickname(nickname);
+            closeNicknameInput();
+            // 初始化页面数据
+            InitRoundData();
+            // 初始化用户昵称显示
+            initUserNicknameDisplay();
+        } else {
+            input.focus();
+            input.style.borderColor = '#ff6b6b';
+        }
+    };
+    content.appendChild(btn);
+
+    modal.appendChild(content);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 关闭昵称输入界面
+function closeNicknameInput() {
+    var overlay = document.getElementById('nicknameOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// ==================== 设备信息获取 ====================
+// 获取设备操作系统信息
+function getDeviceInfo() {
+    var ua = navigator.userAgent || '';
+    var os = 'Unknown';
+    var browser = 'Unknown';
+    var browserVersion = '';
+
+    // 检测操作系统（优先使用 userAgentData API）
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+        // Chrome 等现代浏览器支持
+        var platform = navigator.userAgentData.platform;
+        if (platform.toLowerCase().includes('android')) {
+            // userAgentData.brands 可能包含真实的 Android 版本
+            if (navigator.userAgentData.brands) {
+                for (var i = 0; i < navigator.userAgentData.brands.length; i++) {
+                    var brand = navigator.userAgentData.brands[i];
+                    if (brand.brand === 'Android') {
+                        os = 'Android ' + brand.version;
+                        break;
+                    }
+                }
+            }
+            if (os === 'Unknown') {
+                os = 'Android';
+            }
+        } else if (platform.toLowerCase().includes('ios') || platform.toLowerCase().includes('mac')) {
+            // iOS/macOS 设备
+            if (ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1) {
+                var match = ua.match(/OS (\d+)_/);
+                os = match ? 'iOS ' + match[1] : 'iOS';
+            } else {
+                os = platform;
+            }
+        } else {
+            os = platform;
+        }
+    } else {
+        // 传统方法：使用 userAgent
+        if (ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1) {
+            os = 'iOS';
+            var match = ua.match(/OS (\d+)_/);
+            if (match) {
+                os += ' ' + match[1];
+            }
+        } else if (ua.indexOf('Android') > -1) {
+            os = 'Android';
+            // 使用更精确的正则表达式获取第一个 Android 版本号
+            var match = ua.match(/Android (\d+)/);
+            if (match) {
+                os += ' ' + match[1];
+            }
+        } else if (ua.indexOf('Windows') > -1) {
+            os = 'Windows';
+        } else if (ua.indexOf('Macintosh') > -1) {
+            os = 'macOS';
+        } else if (ua.indexOf('Linux') > -1) {
+            os = 'Linux';
+        }
+    }
+
+    // 检测浏览器
+    if (ua.indexOf('Chrome') > -1) {
+        browser = 'Chrome';
+        var match = ua.match(/Chrome\/(\d+)/);
+        if (match) {
+            browserVersion = match[1];
+        }
+    } else if (ua.indexOf('Safari') > -1) {
+        browser = 'Safari';
+        var match = ua.match(/Version\/(\d+)/);
+        if (match) {
+            browserVersion = match[1];
+        }
+    } else if (ua.indexOf('Firefox') > -1) {
+        browser = 'Firefox';
+        var match = ua.match(/Firefox\/(\d+)/);
+        if (match) {
+            browserVersion = match[1];
+        }
+    } else if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident') > -1) {
+        browser = 'IE';
+    }
+
+    return {
+        os: os,
+        browser: browser,
+        browserVersion: browserVersion
+    };
+}
+
+// ==================== 访问统计功能 ====================
+// API 基础地址
+var STATS_API_BASE = 'http://smalbox.top:5432';
+
+// 记录结算数据到服务器
+function recordSettlementData(round) {
+    // 获取设备信息
+    var deviceInfo = getDeviceInfo();
+
+    // 收集本轮玩家数据（只收集有有效数据的玩家：名字非空 或 有得分记录）
+    var playersData = [];
+    for (var i = 0; i < 6; i++) {
+        var name = round.player[i].name || '';
+        var sumScore = Number(round.player[i].sumScore) || 0;
+        var curScore = Number(round.player[i].curScore) || 0;
+
+        // 如果名字为空且总分数和当前分数也都是0，则跳过该玩家
+        if (!name && sumScore === 0 && curScore === 0) {
+            continue;
+        }
+
+        playersData.push({
+            name: name,
+            sumScore: sumScore,
+            curScore: curScore
+        });
+    }
+
+    // 构建数据结构
+    var now = new Date();
+    var timestamp = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0') + ' ' +
+        String(now.getHours()).padStart(2, '0') + ':' +
+        String(now.getMinutes()).padStart(2, '0') + ':' +
+        String(now.getSeconds()).padStart(2, '0');
+
+    var data = {
+        version: '1.0',
+        timestamp: timestamp,
+        gameInfo: {
+            round: Number(round.roundNum) || 1,
+            totalPlayers: playersData.length
+        },
+        players: playersData,
+        device: {
+            os: deviceInfo.os,
+            browser: deviceInfo.browser,
+            browserVersion: deviceInfo.browserVersion
+        }
+    };
+
+    // 获取指纹ID（格式：HuaPaiScore_<昵称>_<指纹ID>）
+    var nickname = getUserNickname() || 'Unknown';
+    // 清理昵称中的特殊字符（只保留字母、数字、中文）
+    var cleanNickname = nickname.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_');
+    var fingerprintId = canvasFingerprintMD5 ? 'HuaPaiScore_' + cleanNickname + '_' + canvasFingerprintMD5 : '';
+    if (!fingerprintId) {
+        console.log('访问统计：无法获取指纹ID，跳过记录');
+        return;
+    }
+
+    // 构建API URL
+    var content = encodeURIComponent(JSON.stringify(data));
+    var url = STATS_API_BASE + '/store?id=' + fingerprintId + '&content=' + content;
+
+    // 发送请求
+    fetch(url)
+        .then(function(response) {
+            return response.text();
+        })
+        .then(function(result) {
+            console.log('访问统计记录成功:', result);
+        })
+        .catch(function(error) {
+            console.log('访问统计记录失败:', error);
+        });
+}
+
 // 初始化页面回合数据，读取最后一回合数据初始化页面
 function InitRoundData()
 {
@@ -313,6 +579,26 @@ function updateRoundIndicator() {
         indicator.textContent = "第 " + roundNum + " 轮";
     }
 }
+
+// 初始化用户昵称显示
+function initUserNicknameDisplay() {
+    var nicknameDisplay = document.getElementById('userNicknameDisplay');
+    if (nicknameDisplay) {
+        var nickname = getUserNickname();
+        if (nickname) {
+            nicknameDisplay.textContent = nickname;
+            // 添加点击事件，显示用户信息
+            nicknameDisplay.onclick = function() {
+                showUserInfo();
+            };
+            nicknameDisplay.style.cursor = 'pointer';
+            nicknameDisplay.title = '点击查看用户信息';
+        } else {
+            nicknameDisplay.textContent = '';
+        }
+    }
+}
+
 function UpdateViewRoundData()
 {
     // 本地获取roundData json对象
@@ -363,7 +649,20 @@ function UpdateViewMessageBox(msg)
         messageBox.classList.add("message-success");
     }
 }
-InitRoundData();
+
+// 启动时检查昵称
+function startupCheck() {
+    if (checkNicknameRequired()) {
+        // 没有昵称，显示昵称输入界面
+        showNicknameInput();
+    } else {
+        // 有昵称，直接初始化
+        InitRoundData();
+        // 初始化用户昵称显示
+        initUserNicknameDisplay();
+    }
+}
+startupCheck();
 
 // Register service worker.
 if ('serviceWorker' in navigator) {
@@ -472,6 +771,9 @@ function settleAccountScore()
         // 先保存本轮得分数据到历史记录
         saveHistoryRecordWithRoundData(round);
 
+        // 记录结算数据到服务器（异步，不阻塞主流程）
+        recordSettlementData(round);
+
         // 清空本轮得分
         for (var i = 0; i < 6; i++)
         {
@@ -554,16 +856,23 @@ function saveHistoryRecordWithRoundData(round) {
                   String(now.getMinutes()).padStart(2, '0') + ':' +
                   String(now.getSeconds()).padStart(2, '0');
 
-    // 构建本轮得分数据
+    // 构建本轮得分数据（只记录有有效数据的玩家：名字非空 或 有得分记录）
     var roundScores = [];
     for (var i = 0; i < 6; i++) {
-        if (round.player[i].name || round.player[i].curScore) {
-            roundScores.push({
-                playerName: round.player[i].name,
-                sumScore: round.player[i].sumScore,
-                curScore: round.player[i].curScore
-            });
+        var name = round.player[i].name || '';
+        var sumScore = round.player[i].sumScore || '0';
+        var curScore = round.player[i].curScore || '';
+
+        // 如果名字为空且总分数和当前分数也都是0，则跳过该玩家
+        if (!name && Number(sumScore) === 0 && Number(curScore) === 0) {
+            continue;
         }
+
+        roundScores.push({
+            playerName: name,
+            sumScore: sumScore,
+            curScore: curScore
+        });
     }
 
     // 添加新记录
@@ -1581,49 +1890,386 @@ function deleteHistoryFile(fileName) {
     showHistoryList();
 }
 
-// 显示更多菜单
-function showMoreMenu() {
+// 显示用户信息弹窗
+function showUserInfo() {
     // 创建弹窗遮罩
     var overlay = document.createElement('div');
-    overlay.id = 'menuOverlay';
+    overlay.id = 'userInfoOverlay';
     overlay.className = 'modal-overlay';
     overlay.onclick = function(e) {
         if (e.target === overlay) {
+            closeUserInfoModal();
+        }
+    };
+
+    // 创建用户信息弹窗
+    var modal = document.createElement('div');
+    modal.id = 'userInfoModal';
+    modal.className = 'modal-content user-info-content';
+
+    // 标题栏
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.innerHTML = '<span>用户信息</span><span class="close-btn" onclick="closeUserInfoModal()">&times;</span>';
+    modal.appendChild(title);
+
+    // 用户信息内容
+    var content = document.createElement('div');
+    content.className = 'about-inner';
+
+    // 昵称
+    var nicknameRow = document.createElement('div');
+    nicknameRow.className = 'user-info-item';
+    nicknameRow.innerHTML = '<span class="user-info-label">昵称</span>' +
+        '<div class="user-info-value">' +
+        '<span id="displayNickname">' + getUserNickname() + '</span>' +
+        '<button class="edit-nickname-btn" onclick="editNickname()">修改</button>' +
+        '</div>';
+    content.appendChild(nicknameRow);
+
+    // 用户ID（从关于面板移到这里）
+    var idRow = document.createElement('div');
+    idRow.className = 'user-info-item';
+    idRow.innerHTML = '<span class="user-info-label">用户ID</span>' +
+        '<div class="user-info-value monospace"><span id="displayUserId">' + (canvasFingerprintMD5 || '未知') + '</span></div>';
+    content.appendChild(idRow);
+
+    modal.appendChild(content);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 关闭用户信息弹窗
+function closeUserInfoModal() {
+    var overlay = document.getElementById('userInfoOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// 编辑昵称
+function editNickname() {
+    var nicknameSpan = document.getElementById('displayNickname');
+    if (!nicknameSpan) return;
+    var currentNickname = nicknameSpan.textContent;
+    var parentDiv = nicknameSpan.parentNode;
+
+    // 创建输入框
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-nickname-input';
+    input.value = currentNickname;
+    input.maxLength = 20;
+
+    // 创建按钮容器
+    var btnContainer = document.createElement('div');
+    btnContainer.style.display = 'flex';
+    btnContainer.style.alignItems = 'center';
+    btnContainer.style.gap = '0.1rem';
+
+    // 保存按钮
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'save-nickname-btn';
+    saveBtn.textContent = '保存';
+
+    // 取消按钮
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'edit-nickname-btn';
+    cancelBtn.textContent = '取消';
+
+    btnContainer.appendChild(saveBtn);
+    btnContainer.appendChild(cancelBtn);
+
+    // 替换内容
+    parentDiv.innerHTML = '';
+    parentDiv.appendChild(input);
+    parentDiv.appendChild(btnContainer);
+
+    // 保存按钮事件
+    saveBtn.onclick = function() {
+        var newNickname = input.value.trim();
+        if (newNickname) {
+            saveUserNickname(newNickname);
+            restoreNicknameDisplay(newNickname);
+        }
+    };
+
+    // 取消按钮事件
+    cancelBtn.onclick = function() {
+        restoreNicknameDisplay(currentNickname);
+    };
+
+    // 支持按Enter键保存
+    input.onkeypress = function(e) {
+        if (e.key === 'Enter') {
+            saveBtn.onclick();
+        }
+    };
+
+    // 自动聚焦并选中
+    input.focus();
+    input.select();
+}
+
+// 恢复昵称显示
+function restoreNicknameDisplay(nickname) {
+    var overlay = document.getElementById('userInfoOverlay');
+    if (!overlay) return;
+
+    var nicknameRow = overlay.querySelector('.user-info-item');
+    if (!nicknameRow) return;
+
+    var valueDiv = nicknameRow.querySelector('.user-info-value');
+    if (!valueDiv) return;
+
+    // 更新显示
+    valueDiv.innerHTML = '<span id="displayNickname">' + nickname + '</span>' +
+        '<button class="edit-nickname-btn" id="reEditBtn">修改</button>';
+
+    // 重新绑定按钮事件
+    var reEditBtn = document.getElementById('reEditBtn');
+    if (reEditBtn) {
+        reEditBtn.onclick = editNickname;
+    }
+
+    // 更新主界面昵称显示
+    initUserNicknameDisplay();
+}
+
+// 显示更多菜单
+var menuOverlay = null;
+var menuModal = null;
+
+function showMoreMenu() {
+    // 如果已存在，先关闭
+    closeMenuModal();
+
+    // 创建弹窗遮罩
+    menuOverlay = document.createElement('div');
+    menuOverlay.id = 'menuOverlay';
+    menuOverlay.className = 'modal-overlay';
+    menuOverlay.onclick = function(e) {
+        if (e.target === menuOverlay) {
             closeMenuModal();
         }
     };
 
     // 创建菜单弹窗
-    var modal = document.createElement('div');
-    modal.id = 'menuModal';
-    modal.className = 'modal-content menu-content';
+    menuModal = document.createElement('div');
+    menuModal.id = 'menuModal';
+    menuModal.className = 'modal-content menu-content';
 
     // 标题栏
     var title = document.createElement('div');
     title.className = 'modal-title';
-    title.innerHTML = '<span>更多选项</span><span class="close-btn" onclick="closeMenuModal()">&times;</span>';
-    modal.appendChild(title);
+    title.innerHTML = '<span id="menuTitle">更多选项</span><span class="close-btn" onclick="closeMenuModal()">&times;</span>';
+    menuModal.appendChild(title);
 
-    // 菜单列表
+    // 内容容器
+    var contentContainer = document.createElement('div');
+    contentContainer.id = 'menuContentContainer';
+    menuModal.appendChild(contentContainer);
+
+    // 显示菜单列表
+    showMenuList(contentContainer);
+
+    menuOverlay.appendChild(menuModal);
+    document.body.appendChild(menuOverlay);
+}
+
+// 显示菜单列表
+function showMenuList(contentContainer) {
+    contentContainer.innerHTML = '';
+
     var listContainer = document.createElement('div');
     listContainer.className = 'history-list-container';
 
     var ul = document.createElement('ul');
     ul.className = 'menu-list';
 
+    // 用户信息按钮
+    var userLi = document.createElement('li');
+    userLi.className = 'menu-item';
+    userLi.textContent = '用户信息';
+    userLi.onclick = function() {
+        showUserInfoInMenu(contentContainer);
+    };
+    ul.appendChild(userLi);
+
     // 关于按钮
     var aboutLi = document.createElement('li');
     aboutLi.className = 'menu-item';
     aboutLi.textContent = '关于';
     aboutLi.onclick = function() {
-        showAbout();
+        showAboutInMenu(contentContainer);
     };
     ul.appendChild(aboutLi);
 
+    // 返回按钮（当显示子菜单时）
+    var backLi = document.createElement('li');
+    backLi.className = 'menu-item';
+    backLi.style.display = 'none';  // 默认隐藏
+    backLi.id = 'menuBackBtn';
+    backLi.innerHTML = '← 返回';
+    backLi.onclick = function() {
+        // 重新显示菜单列表
+        var title = document.getElementById('menuTitle');
+        if (title) title.textContent = '更多选项';
+        showMenuList(contentContainer);
+    };
+    ul.appendChild(backLi);
+
     listContainer.appendChild(ul);
-    modal.appendChild(listContainer);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
+    contentContainer.appendChild(listContainer);
+}
+
+// 在菜单内显示用户信息
+function showUserInfoInMenu(contentContainer) {
+    contentContainer.innerHTML = '';
+
+    // 修改标题
+    var title = document.getElementById('menuTitle');
+    if (title) title.textContent = '用户信息';
+
+    // 显示返回按钮
+    var backBtn = document.getElementById('menuBackBtn');
+    if (backBtn) backBtn.style.display = 'block';
+
+    // 用户信息内容
+    var content = document.createElement('div');
+    content.className = 'about-inner';
+    content.style.padding = '0.3rem';
+
+    // 昵称
+    var nicknameRow = document.createElement('div');
+    nicknameRow.className = 'user-info-item';
+    nicknameRow.innerHTML = '<span class="user-info-label">昵称</span>' +
+        '<div class="user-info-value">' +
+        '<span id="displayNickname">' + getUserNickname() + '</span>' +
+        '<button class="edit-nickname-btn" id="editNicknameBtn">修改</button>' +
+        '</div>';
+    content.appendChild(nicknameRow);
+
+    // 绑定编辑按钮事件（需要在添加到DOM后获取元素）
+    var editBtn = nicknameRow.querySelector('#editNicknameBtn');
+    if (editBtn) {
+        editBtn.addEventListener('click', editNicknameInMenu);
+    }
+
+    // 用户ID
+    var idRow = document.createElement('div');
+    idRow.className = 'user-info-item';
+    idRow.innerHTML = '<span class="user-info-label">用户ID</span>' +
+        '<div class="user-info-value monospace"><span id="displayUserId">' + (canvasFingerprintMD5 || '未知') + '</span></div>';
+    content.appendChild(idRow);
+
+    contentContainer.appendChild(content);
+}
+
+// 在菜单内编辑昵称
+function editNicknameInMenu() {
+    var nicknameSpan = document.getElementById('displayNickname');
+    var currentNickname = nicknameSpan.textContent;
+
+    // 创建输入框
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-nickname-input';
+    input.value = currentNickname;
+    input.maxLength = 20;
+
+    // 保存和取消按钮
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'save-nickname-btn';
+    saveBtn.textContent = '保存';
+
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'edit-nickname-btn';
+    cancelBtn.textContent = '取消';
+    cancelBtn.style.marginLeft = '0.1rem';
+
+    // 替换内容
+    var parent = nicknameSpan.parentNode;
+    parent.innerHTML = '';
+    parent.appendChild(input);
+    parent.appendChild(saveBtn);
+    parent.appendChild(cancelBtn);
+
+    // 绑定事件
+    saveBtn.addEventListener('click', function() {
+        var newNickname = input.value.trim();
+        if (newNickname) {
+            saveUserNickname(newNickname);
+            // 更新主界面昵称显示
+            initUserNicknameDisplay();
+            // 重新显示用户信息
+            var contentContainer = document.getElementById('menuContentContainer');
+            if (contentContainer) {
+                showUserInfoInMenu(contentContainer);
+            }
+        }
+    });
+
+    cancelBtn.addEventListener('click', function() {
+        // 重新显示用户信息（恢复原样）
+        var contentContainer = document.getElementById('menuContentContainer');
+        if (contentContainer) {
+            showUserInfoInMenu(contentContainer);
+        }
+    });
+
+    input.focus();
+    input.select();
+}
+
+// 在菜单内显示关于信息
+function showAboutInMenu(contentContainer) {
+    contentContainer.innerHTML = '';
+
+    // 修改标题
+    var title = document.getElementById('menuTitle');
+    if (title) title.textContent = '关于';
+
+    // 显示返回按钮
+    var backBtn = document.getElementById('menuBackBtn');
+    if (backBtn) backBtn.style.display = 'block';
+
+    // 关于内容
+    var content = document.createElement('div');
+    content.className = 'about-inner';
+    content.style.padding = '0.3rem';
+
+    var titleElem = document.createElement('div');
+    titleElem.className = 'about-title';
+    titleElem.textContent = '花牌记分器 V0.2.7';
+    content.appendChild(titleElem);
+
+    var descInfo = document.createElement('div');
+    descInfo.className = 'about-info';
+    descInfo.innerHTML = '<span class="about-label">描述：</span>用于2-6人的花牌记分工具';
+    content.appendChild(descInfo);
+
+    var devInfo = document.createElement('div');
+    devInfo.className = 'about-info';
+    devInfo.innerHTML = '<span class="about-label">开发者：</span>SmalBox';
+    content.appendChild(devInfo);
+
+    var featureInfo = document.createElement('div');
+    featureInfo.className = 'about-info';
+    featureInfo.innerHTML = '<span class="about-label">功能列表：</span>';
+    content.appendChild(featureInfo);
+
+    var featureList = document.createElement('div');
+    featureList.className = 'about-info';
+    featureList.style.paddingLeft = '0.3rem';
+    featureList.style.lineHeight = '2';
+    featureList.innerHTML =
+        '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
+        '<span style="color: #ffca71;">新增功能（V0.2.7）：用户昵称、用户信息面板</span><br/>' +
+        '扩展功能：添加到桌面（PWA）、更多菜单';
+    content.appendChild(featureList);
+
+    contentContainer.appendChild(content);
 }
 
 // 关闭更多菜单
@@ -1663,7 +2309,7 @@ function showAbout() {
 
     var titleElem = document.createElement('div');
     titleElem.className = 'about-title';
-    titleElem.textContent = '花牌记分器 V0.2.5';
+    titleElem.textContent = '花牌记分器 V0.2.7';
     content.appendChild(titleElem);
 
     var descInfo = document.createElement('div');
@@ -1687,37 +2333,9 @@ function showAbout() {
     featureList.style.lineHeight = '2';
     featureList.innerHTML =
         '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
-        '<span style="color: #ffca71;">新增功能（V0.2.5）：用户标识（Canvas 指纹）</span><br/>' +
+        '<span style="color: #ffca71;">新增功能（V0.2.7）：用户昵称、用户信息面板</span><br/>' +
         '扩展功能：添加到桌面（PWA）、更多菜单';
     content.appendChild(featureList);
-
-    // Canvas 指纹区域
-    var fingerprintInfo = document.createElement('div');
-    fingerprintInfo.className = 'about-info';
-    fingerprintInfo.style.marginTop = '0.3rem';
-    fingerprintInfo.style.paddingTop = '0.2rem';
-    fingerprintInfo.style.borderTop = '1px dashed rgba(255, 202, 113, 0.3)';
-    fingerprintInfo.innerHTML = '<span class="about-label">用户标识：</span>';
-
-    // 创建指纹容器
-    var fingerprintContainer = document.createElement('div');
-    fingerprintContainer.style.marginTop = '0.1rem';
-
-    // 显示 Canvas 指纹 MD5 哈希
-    if (canvasFingerprintMD5) {
-        var textElem = document.createElement('div');
-        textElem.style.fontFamily = 'monospace';
-        textElem.style.fontSize = '0.22rem';
-        textElem.style.color = '#ffd700';
-        textElem.style.letterSpacing = '0.05rem';
-        textElem.textContent = canvasFingerprintMD5;
-        fingerprintContainer.appendChild(textElem);
-    } else {
-        fingerprintContainer.textContent = '无法生成指纹';
-    }
-
-    fingerprintInfo.appendChild(fingerprintContainer);
-    content.appendChild(fingerprintInfo);
 
     modal.appendChild(content);
 

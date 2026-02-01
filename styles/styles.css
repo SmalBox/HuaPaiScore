@@ -107,6 +107,29 @@ input {
     border-bottom: 1px dashed rgba(255, 202, 113, 0.5);
     margin: 0 0.3rem;
 }
+
+/* 用户昵称显示 */
+.user-nickname-display {
+    position: absolute;
+    top: 3.15rem;
+    left: 0.5rem;
+    padding: 0.1rem;
+    color: #ffca71;
+    font-size: 0.35rem;
+    z-index: 10;
+    font-weight: bold;
+}
+
+.user-nickname-display::before {
+    content: '🎴';
+}
+
+.user-nickname-display:hover {
+    background-color: rgba(255, 202, 113, 0.2);
+    border-radius: 0.1rem;
+    box-shadow: 0 0 0.15rem rgba(255, 202, 113, 0.6);
+}
+
 .inputTable {
     width: 94%;
     text-align: center;
@@ -832,4 +855,166 @@ input:focus {
 }
 
 /* 枫叶静态显示 */
+
+/* ========== 昵称输入界面样式 ========== */
+.nickname-overlay {
+    background-color: rgba(0, 43, 70, 0.90);
+}
+
+.nickname-modal {
+    width: 85%;
+    max-width: 1000px;
+    animation: nicknameSlideIn 0.5s ease-out;
+}
+
+@keyframes nicknameSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.nickname-content {
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.nickname-tip {
+    color: #ffca71;
+    font-size: 0.4rem;
+    margin-bottom: 0.1rem;
+}
+
+.nickname-input {
+    width: 80%;
+    padding: 0.25rem 0.3rem;
+    font-size: 0.4rem;
+    border: 2px solid #ffca71;
+    border-radius: 0.1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
+    outline: none;
+}
+
+.nickname-input:focus {
+    box-shadow: 0 0 15px rgba(255, 202, 113, 0.5);
+}
+
+.nickname-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.nickname-btn {
+    width: 30%;
+    padding: 0.15rem;
+    font-size: 0.4rem;
+    background-color: #900600;
+    border-color: #ffca71;
+    color: white;
+    text-align: center;
+    border-radius: 0.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    float: none;
+    margin: auto;
+}
+
+.nickname-btn:hover {
+    background-color: #b00800;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 202, 113, 0.5);
+}
+
+/* ========== 用户信息弹窗样式 ========== */
+.user-info-content {
+    width: 90%;
+    max-width: 1000px;
+}
+
+.user-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px dashed rgba(255, 202, 113, 0.3);
+}
+
+.user-info-item:last-child {
+    border-bottom: none;
+}
+
+.user-info-label {
+    color: #ffca71;
+    font-size: 0.35rem;
+}
+
+.user-info-value {
+    color: white;
+    font-size: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.user-info-value span {
+    word-break: break-all;
+    text-align: right;
+}
+
+.user-info-value.monospace {
+    font-family: monospace;
+    font-size: 0.28rem;
+}
+
+.edit-nickname-btn {
+    background: none;
+    border: 1px solid #ffca71;
+    color: #ffca71;
+    padding: 0.1rem 0.2rem;
+    font-size: 0.25rem;
+    border-radius: 0.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-nickname-btn:hover {
+    background-color: rgba(255, 202, 113, 0.2);
+}
+
+/* 修改昵称输入框 */
+.edit-nickname-input {
+    width: 60%;
+    padding: 0.1rem 0.2rem;
+    font-size: 0.35rem;
+    border: 1px solid #ffca71;
+    border-radius: 0.1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    outline: none;
+    text-align: right;
+}
+
+.edit-nickname-input:focus {
+    box-shadow: 0 0 10px rgba(255, 202, 113, 0.3);
+}
+
+.save-nickname-btn {
+    background-color: #ffca71;
+    color: #004876;
+    border: none;
+    padding: 0.1rem 0.2rem;
+    font-size: 0.25rem;
+    border-radius: 0.1rem;
+    cursor: pointer;
+    margin-left: 0.1rem;
+}
+
+.save-nickname-btn:hover {
+    background-color: #ffd700;
+}
 
