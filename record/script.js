@@ -29,7 +29,7 @@ async function loadInitialData() {
     
     try {
         // 尝试从 API 获取数据
-        const response = await fetch('http://smalbox.top:5432/list');
+        const response = await fetch('https://smalbox.top:5433/list');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
