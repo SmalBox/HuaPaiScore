@@ -1,0 +1,34 @@
+{
+  "data": {
+    "1": {
+      "content": "174",
+      "timestamp": "2025-11-21T22:01:22.255062"
+    },
+    "HuaPaiScoreUsedTimes": {
+      "content": "{\"count\":214}",
+      "timestamp": "2026-03-09T06:31:04.180066"
+    },
+    "HuaPaiScore_155a22125122a60585da951c58039be3": {
+      "content": "{\"version\":\"1.0\",\"timestamp\":\"2026-03-01 16:25:40\",\"gameInfo\":{\"round\":14,\"totalPlayers\":3},\"players\":[{\"name\":\"\u5d14\",\"sumScore\":-70,\"curScore\":45},{\"name\":\"\u7231\",\"sumScore\":-25,\"curScore\":-10},{\"name\":\"\u751c\",\"sumScore\":95,\"curScore\":-35}],\"device\":{\"os\":\"Android\",\"browser\":\"Chrome\",\"browserVersion\":\"135\"},\"user\":{\"nickname\":\"\u5c0f\u7231\"},\"count\":14}",
+      "timestamp": "2026-03-01T03:25:41.337045"
+    },
+    "HuaPaiScore_791c0d11088a5839cf3d584e97393c73": {
+      "content": "{\"version\":\"1.0\",\"timestamp\":\"2026-03-03 23:29:10\",\"gameInfo\":{\"round\":38,\"totalPlayers\":4},\"players\":[{\"name\":\"\u798f\u6210\",\"sumScore\":-595,\"curScore\":-35},{\"name\":\"\u660e\u7389\",\"sumScore\":255,\"curScore\":35},{\"name\":\"\u91d1\u5929\",\"sumScore\":-50,\"curScore\":25},{\"name\":\"\u591a\u591a\",\"sumScore\":390,\"curScore\":-25}],\"device\":{\"os\":\"Android\",\"browser\":\"Chrome\",\"browserVersion\":\"142\"},\"user\":{\"nickname\":\"\u6cd5\u62c9\u5229\"},\"count\":97}",
+      "timestamp": "2026-03-03T10:29:13.372328"
+    },
+    "HuaPaiScore_9d62eb56487cb7eb39dff6e6cca11022": {
+      "content": "{\"version\":\"1.0\",\"timestamp\":\"2026-03-03 21:31:57\",\"gameInfo\":{\"round\":19,\"totalPlayers\":2},\"players\":[{\"name\":\"\u73b2\",\"sumScore\":215,\"curScore\":40},{\"name\":\"\u6770\",\"sumScore\":-215,\"curScore\":-40}],\"device\":{\"os\":\"Android\",\"browser\":\"Chrome\",\"browserVersion\":\"142\"},\"user\":{\"nickname\":\"1\"},\"count\":33}",
+      "timestamp": "2026-03-03T08:32:21.063635"
+    },
+    "HuaPaiScore_d0c3d44c15fd6ef2323ebb0b1dcadf80": {
+      "content": "{\"version\":\"1.0\",\"timestamp\":\"2026-02-18 21:58:54\",\"gameInfo\":{\"round\":17,\"totalPlayers\":4},\"players\":[{\"name\":\"\u7231\",\"sumScore\":160,\"curScore\":-45},{\"name\":\"\u5d14\",\"sumScore\":50,\"curScore\":30},{\"name\":\"\u5b87\",\"sumScore\":35,\"curScore\":-45},{\"name\":\"\u751c\",\"sumScore\":-245,\"curScore\":60}],\"device\":{\"os\":\"Android\",\"browser\":\"Chrome\",\"browserVersion\":\"135\"},\"user\":{\"nickname\":\"MF4Box\"},\"count\":68}",
+      "timestamp": "2026-02-18T08:58:55.825134"
+    },
+    "HuaPaiScore_d8a5f77bce5b421d848e57faffc7c171": {
+      "content": "{\"version\":\"1.0\",\"timestamp\":\"2026-03-09 18:31:02\",\"gameInfo\":{\"round\":6,\"totalPlayers\":6},\"players\":[{\"name\":\"\u5d14\",\"sumScore\":-35,\"curScore\":-10},{\"name\":\"\u7231\",\"sumScore\":60,\"curScore\":0},{\"name\":\"\u6210\",\"sumScore\":20,\"curScore\":85},{\"name\":\"\u7389\",\"sumScore\":-45,\"curScore\":-55},{\"name\":\"\u5929\",\"sumScore\":5,\"curScore\":-5},{\"name\":\"\u591a\",\"sumScore\":-5,\"curScore\":-15}],\"device\":{\"os\":\"Android 15\",\"browser\":\"Chrome\",\"browserVersion\":\"121\"},\"user\":{\"nickname\":\"\u5c0f\u7231\"},\"count\":6}",
+      "timestamp": "2026-03-09T06:31:02.955820"
+    }
+  },
+  "status": "success",
+  "total_records": 7
+}
