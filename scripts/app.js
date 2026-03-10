@@ -815,6 +815,8 @@ function startupCheck() {
         // 初始化用户昵称显示
         initUserNicknameDisplay();
     }
+    // 页面加载时获取并缓存位置信息
+    initLocationCache();
 }
 startupCheck();
 
@@ -963,6 +965,9 @@ function settleAccountScore()
 
     //document.getElementById("messageBox").textContent = "本轮结算成功！";
     UpdateViewMessageBox("本轮结算成功！");
+    
+    // 结算时更新位置缓存
+    initLocationCache();
 }
 
 // 生成文件名格式：年月日时分秒
@@ -2387,7 +2392,7 @@ function showAboutInMenu(contentContainer) {
 
     var titleElem = document.createElement('div');
     titleElem.className = 'about-title';
-    titleElem.textContent = '花牌记分器 V0.2.8';
+    titleElem.textContent = '花牌记分器 V0.3.0';
     content.appendChild(titleElem);
 
     var descInfo = document.createElement('div');
@@ -2439,7 +2444,8 @@ function showAboutInMenu(contentContainer) {
     featureList.style.lineHeight = '2';
     featureList.innerHTML =
         '基础功能：记分、结算差错、重置分数、数据本地存储<br/>' +
-        '<span style="color: #ffca71;">新增功能（V0.2.8）：使用次数统计</span><br/>' +
+        '<span style="color: #ffca71;">新增功能（V0.3.0）：分享快照</span><br/>' +
+        '新增功能（V0.2.8）：使用次数统计<br/>' +
         '新增功能（V0.2.7）：用户昵称、用户信息面板<br/>' +
         '扩展功能：添加到桌面（PWA）、更多菜单';
     content.appendChild(featureList);
@@ -2553,4 +2559,590 @@ function closeAboutModal() {
     if (overlay) {
         overlay.remove();
     }
+}
+
+// ==================== 分享功能 ====================
+// 检测微信
+function isWeChat() {
+    return /MicroMessenger/i.test(navigator.userAgent);
+}
+
+// 检测 QQ
+function isQQ() {
+    return /QQ/i.test(navigator.userAgent) && !isWeChat();
+}
+
+// 检测 iOS
+function isIOS() {
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+// 检测 Android
+function isAndroid() {
+    return /Android/i.test(navigator.userAgent);
+}
+
+// 检测是否支持 navigator.share
+function supportNavigatorShare() {
+    return navigator.share && navigator.canShare && navigator.mediaDevices;
+}
+
+// 检测是否在移动端
+function isMobile() {
+    return /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+// 生成页面截图
+function generateScreenshot(element) {
+    // 获取松树背景图片URL
+    var pineL = document.getElementById('pineL');
+    var pineR = document.getElementById('pineR');
+    var pineLUrl = pineL ? window.getComputedStyle(pineL).backgroundImage.replace(/url\(['"]?(.+?)['"]?\)/, '$1') : '';
+    var pineRUrl = pineR ? window.getComputedStyle(pineR).backgroundImage.replace(/url\(['"]?(.+?)['"]?\)/, '$1') : '';
+    
+    return html2canvas(element || document.body, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f5f0e6',
+        logging: false,
+        imageTimeout: 15000,
+        onclone: function(clonedDoc) {
+            var clonedPineL = clonedDoc.getElementById('pineL');
+            var clonedPineR = clonedDoc.getElementById('pineR');
+            
+            // 隐藏背景图，用img元素代替
+            if (clonedPineL && pineLUrl) {
+                clonedPineL.style.backgroundImage = 'none';
+                var imgL = clonedDoc.createElement('img');
+                imgL.src = pineLUrl;
+                imgL.style.cssText = 'width: 100%; height: auto; position: absolute; left: 0; bottom: 0; pointer-events: none; object-fit: contain; object-position: left bottom;';
+                clonedPineL.appendChild(imgL);
+            }
+            if (clonedPineR && pineRUrl) {
+                clonedPineR.style.backgroundImage = 'none';
+                var imgR = clonedDoc.createElement('img');
+                imgR.src = pineRUrl;
+                imgR.style.cssText = 'width: 100%; height: auto; position: absolute; right: 0; bottom: 0; pointer-events: none; object-fit: contain; object-position: right bottom;';
+                clonedPineR.appendChild(imgR);
+            }
+            
+            // 修改轮数显示：第x轮 -> 累计x-1轮
+            var clonedRoundIndicator = clonedDoc.getElementById('roundIndicator');
+            if (clonedRoundIndicator) {
+                var text = clonedRoundIndicator.textContent;
+                var match = text.match(/第\s*(\d+)\s*轮/);
+                if (match) {
+                    var roundNum = parseInt(match[1]);
+                    clonedRoundIndicator.textContent = '累计' + (roundNum - 1) + '轮';
+                }
+            }
+            
+            // 修改标题：花牌规则 -> 达成记录
+            var clonedRuleTitle = clonedDoc.querySelector('.huaPaiRuleTitle');
+            console.log('clonedRuleTitle found:', !!clonedRuleTitle);
+            if (clonedRuleTitle) {
+                clonedRuleTitle.textContent = '达成记录';
+            }
+            
+            // 获取当前文件的历史记录并计算达成记录
+            var historyStorage = localStorage.getItem('historyData');
+            console.log('historyStorage found:', !!historyStorage);
+            if (historyStorage) {
+                try {
+                    var historyData = JSON.parse(historyStorage);
+                    console.log('historyData:', historyData);
+                    var currentFile = historyData.currentFile;
+                    console.log('currentFile:', currentFile);
+                    if (currentFile && historyData[currentFile]) {
+                        var records = historyData[currentFile];
+                        console.log('records length:', records ? records.length : 0);
+                        if (records && records.length > 0) {
+                            var stats = calculateStats(records);
+                            console.log('stats:', stats);
+                            // 修改规则正文为达成记录
+                            var clonedRuleText = clonedDoc.querySelector('.huaPaiRuleText');
+                            console.log('clonedRuleText found:', !!clonedRuleText);
+                            if (clonedRuleText) {
+                                var recordHtml = '<div style="display:flex;flex-wrap:wrap;justify-content:center;padding:0.1rem;text-align:center;width:100%;">';
+                                var nameColor = '#393939e6'
+                                if (stats.allTimeMaxScore !== -Infinity) {
+                                    var maxScoreColor = stats.allTimeMaxScore >= 0 ? '#e7ad00' : '#cc0000';
+                                    recordHtml += '<div style="width:45%;margin:0.1rem;font-size:0.5rem;color:black;font-weight:bold;">累积最高<br><span style="color:' + maxScoreColor + ';font-weight:bold;font-size:0.45rem;">' + stats.allTimeMaxScore + '分</span> <span style="color:' + nameColor + ';font-size:0.4rem;">(' + stats.allTimeMaxPlayers.join(',') + ')</span></div>';
+                                }
+                                if (stats.allTimeMinScore !== Infinity) {
+                                    var minScoreColor = stats.allTimeMinScore >= 0 ? '#e7ad00' : '#cc0000';
+                                    recordHtml += '<div style="width:45%;margin:0.1rem;font-size:0.5rem;color:black;font-weight:bold;">累积最低<br><span style="color:' + minScoreColor + ';font-weight:bold;font-size:0.45rem;">' + stats.allTimeMinScore + '分</span> <span style="color:' + nameColor + ';font-size:0.4rem;font-weight:normal;">(' + stats.allTimeMinPlayers.join(',') + ')</span></div>';
+                                }
+                                if (stats.roundMaxScore !== '-') {
+                                    var roundMaxColor = stats.roundMaxScore >= 0 ? '#e7ad00' : '#cc0000';
+                                    recordHtml += '<div style="width:45%;margin:0.1rem;font-size:0.5rem;color:black;font-weight:bold;">单轮最高<br><span style="color:' + roundMaxColor + ';font-weight:bold;font-size:0.45rem;">' + stats.roundMaxScore + '分</span> <span style="color:' + nameColor + ';font-size:0.4rem;font-weight:normal;">(' + stats.roundMaxPlayers.join(',') + ')</span></div>';
+                                }
+                                if (stats.roundMinScore !== '-') {
+                                    var roundMinColor = stats.roundMinScore >= 0 ? '#e7ad00' : '#cc0000';
+                                    recordHtml += '<div style="width:45%;margin:0.1rem;font-size:0.5rem;color:black;font-weight:bold;">单轮最低<br><span style="color:' + roundMinColor + ';font-weight:bold;font-size:0.45rem;">' + stats.roundMinScore + '分</span> <span style="color:' + nameColor + ';font-size:0.4rem;font-weight:normal;">(' + stats.roundMinPlayers.join(',') + ')</span></div>';
+                                }
+                                recordHtml += '</div>';
+                                clonedRuleText.innerHTML = recordHtml;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log('获取历史记录失败:', e);
+                }
+            }
+            
+            // 将输入框替换为文本显示
+            var clonedInputs = clonedDoc.querySelectorAll('input');
+            for (var i = 0; i < clonedInputs.length; i++) {
+                var input = clonedInputs[i];
+                var value = input.value || input.placeholder || '';
+                var parent = input.parentElement;
+                if (parent) {
+                    var span = document.createElement('span');
+                    span.textContent = value;
+                    span.style.cssText = 'display: inline-block; width: 100%; height: 80%; color: white; text-align: center; line-height: normal; background: linear-gradient(to top, #0048BB 0%, #004876 60%); border-bottom: 1px solid #004FFF; font-size: 0.45rem; box-sizing: border-box; vertical-align: middle;';
+                    parent.insertBefore(span, input);
+                    input.style.display = 'none';
+                }
+            }
+        }
+    });
+}
+
+// 分享图片预览弹窗（用于微信/QQ/PC环境）
+function showSharePreview(imageDataUrl, platform) {
+    // 关闭已有弹窗
+    var existingOverlay = document.getElementById('shareOverlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+
+    var tipText = '';
+    if (platform === '微信') {
+        tipText = '长按图片 → 发送给朋友';
+    } else if (platform === 'QQ') {
+        tipText = '长按图片 → 发送给好友';
+    } else {
+        tipText = '右键 或 长按 图片另存为，然后手动发送';
+    }
+
+    // 创建弹窗遮罩
+    var overlay = document.createElement('div');
+    overlay.id = 'shareOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) {
+        if (e.target === overlay) {
+            closeSharePreview();
+        }
+    };
+
+    // 创建弹窗内容
+    var modal = document.createElement('div');
+    modal.id = 'shareModal';
+    modal.className = 'modal-content share-modal';
+
+    // 标题栏
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.innerHTML = '<span>分享快照</span><span class="close-btn" onclick="closeSharePreview()">&times;</span>';
+    modal.appendChild(title);
+
+    // 图片容器
+    var imgContainer = document.createElement('div');
+    imgContainer.className = 'share-image-container';
+
+    var img = document.createElement('img');
+    img.src = imageDataUrl;
+    img.className = 'share-image';
+    imgContainer.appendChild(img);
+
+    modal.appendChild(imgContainer);
+
+    // 提示文字
+    var tip = document.createElement('div');
+    tip.className = 'share-tip';
+    tip.innerHTML = '<span style="color: #ffca71;">请' + tipText + '</span>';
+    modal.appendChild(tip);
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 关闭分享预览弹窗
+function closeSharePreview() {
+    var overlay = document.getElementById('shareOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// 页面加载时获取并缓存位置信息
+function initLocationCache() {
+    // 先清理旧缓存
+    localStorage.removeItem('locationCache');
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var lat = position.coords.latitude;
+            var lon = position.coords.longitude;
+            console.log('页面加载-获取到经纬度:', lat, lon);
+            fetchAndCacheLocation(lat, lon);
+        }, function() {
+            console.log('GPS定位失败');
+        }, { timeout: 3000, maximumAge: 0 });
+    }
+}
+
+// 简繁体转换 - 使用更完整的映射
+var traditionalToSimplifiedMap = {
+    '臺': '台', '灣': '湾', '為': '为', '與': '与', '國': '国',
+    '裡': '里', '麵': '面', '餘': '余', '複': '复', '後': '后',
+    '妳': '你', '說': '说', '時': '时', '們': '们', '會': '会',
+    '這': '这', '讓': '让', '還': '还', '對': '对', '從': '从',
+    '門': '门', '間': '间', '開': '开', '關': '关', '間': '间',
+    '頭': '头', '響': '响', '電': '电', '雲': '云', '陽': '阳',
+    '陳': '陈', '醫': '医', '院': '院', '車': '车', '軍': '军',
+    '連': '连', '號': '号', '層': '层', '東': '东', '兩': '两',
+    '義': '义', '與': '与', '學': '学', '孫': '孙', '馬': '马',
+    '麗': '丽', '來': '来', '斷': '断', '歲': '岁', '萬': '万',
+    '葉': '叶', '著': '着', '處': '处', '裡': '里', '點': '点',
+    '說': '说', '話': '话', '請': '请', '讓': '让', '記': '记',
+    '問題': '问题', '強度': '强度', '強度': '强度', '區': '区',
+    '縣': '县', '鎮': '镇', '鄉': '乡', '街': '街', '道': '道',
+    '路': '路', '號': '号', '樓': '楼', '層': '层', '室': '室',
+    '廈': '厦', '廠': '厂', '灣': '湾', '幣': '币', '廣': '广',
+    '庫': '库', '幹': '干', '應': '应', '該': '该', '總': '总',
+    '個': '个', '們': '们', '這': '这', '那': '那', '麼': '么',
+    '什麼': '什么', '怎麼': '怎么', '為什麼': '为什么', '為': '为',
+    '選擇': '选择', '通過': '通过', '已經': '已经', '因為': '因为',
+    '所以': '所以', '但是': '但是', '可以': '可以', '自己': '自己',
+    '我們': '我们', '他們': '他们', '這些': '这些', '那些': '那些',
+    '這裡': '这里', '那裡': '那里', '什麼': '什么', '怎麼樣': '怎么样',
+    '幾': '几', '乾': '干', '於': '于', '發': '发', '復': '复',
+    '夥': '伙', '佔': '占', '衝': '冲', '別': '别', '峯': '峰',
+    '島': '岛', '頂': '顶', '凍': '冻', '涼': '凉', '減': '减',
+    '凜': '凛', '擊': '击', '岡': '冈', '剛': '刚', '創': '创',
+    '劉': '刘', '則': '则', '剎': '刹', '劍': '剑', '卻': '却',
+    '腳': '脚', '脫': '脱', '媽': '妈', '麗': '丽', '晝': '昼',
+    '晉': '晋', '暁': '晓', '暫': '暂', '桿': '杆', '條': '条',
+    '棧': '栈', '橋': '桥', '棄': '弃', '樣': '样', '樹': '树',
+    '檔': '档', '檢': '检', '歐': '欧', '歷': '历', '緊': '紧',
+    '紅': '红', '紋': '纹', '納': '纳', '甦': '苏', '綁': '绑',
+    '羅': '罗', '習': '习', '舊': '旧', '面積': '面积', '區域': '区域',
+    '建設': '建设', '電話': '电话', '廁': '厕', '廂': '厢',
+    '廬': '庐', '廳': '厅', '棄': '弃', '壓': '压', '夠': '够',
+    '壘': '垒', '壞': '坏', '涼': '凉', '幺': '么'
+};
+
+function toSimplifiedChinese(str) {
+    if (!str) return '';
+    var result = '';
+    for (var i = 0; i < str.length; i++) {
+        var char = str[i];
+        result += traditionalToSimplifiedMap[char] || char;
+    }
+    return result;
+}
+
+// 获取并缓存位置信息
+function fetchAndCacheLocation(lat, lon) {
+    console.log('开始获取位置信息-经纬度:', lat, lon);
+    
+    // Nominatim API
+    function fetchNominatim() {
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() {
+            controller.abort();
+        }, 8000);
+        
+        return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&zoom=18&addressdetails=1', { 
+            signal: controller.signal,
+            headers: { 'User-Agent': 'HuaPaiScore/1.0' }
+        }).then(function(response) {
+            clearTimeout(timeoutId);
+            return response.json();
+        }).then(function(data) {
+            console.log('Nominatim结果:', data);
+            if (data.address) {
+                var addr = data.address;
+                // 格式：城市-路名，从 locality 获取城市，road 获取路名
+                var city = addr.locality || addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state_district || '';
+                var road = addr.road || '';
+                
+                var address = '';
+                if (city) address = city;
+                if (road) address += '-' + road;
+                
+                return { fullAddress: address, city: city, district: '', road: road };
+            }
+            return null;
+        }).catch(function(err) {
+            clearTimeout(timeoutId);
+            console.log('Nominatim失败:', err);
+            return null;
+        });
+    }
+    
+    // BigDataCloud API
+    function fetchBigDataCloud() {
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function() {
+            controller.abort();
+        }, 8000);
+        
+        return fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=zh', { 
+            signal: controller.signal
+        }).then(function(response) {
+            clearTimeout(timeoutId);
+            return response.json();
+        }).then(function(data) {
+            console.log('BigDataCloud结果:', data);
+            // 格式：城市-区-街道
+            var city = data.city || data.locality || data.principalSubdivision || '';
+            var district = data.locality || '';
+            var road = '';
+            
+            var address = '';
+            if (city) address = city;
+            if (district && district !== city) address += '-' + district;
+            
+            return { fullAddress: address, city: city, district: district, road: road };
+        }).catch(function(err) {
+            clearTimeout(timeoutId);
+            console.log('BigDataCloud失败:', err);
+            return null;
+        });
+    }
+    
+    // 优先使用Nominatim，失败则使用BigDataCloud
+    fetchNominatim().then(function(result) {
+        if (result && result.fullAddress) {
+            saveLocationToCache(result);
+        } else {
+            // Nominatim失败，使用BigDataCloud
+            fetchBigDataCloud().then(function(result2) {
+                if (result2 && result2.fullAddress) {
+                    saveLocationToCache(result2);
+                }
+            });
+        }
+    });
+    
+    function saveLocationToCache(result) {
+        // 转换为简体中文
+        var simplifiedAddr = toSimplifiedChinese(result.fullAddress);
+        var simplifiedCity = toSimplifiedChinese(result.city || '');
+        var simplifiedDistrict = toSimplifiedChinese(result.district || '');
+        var simplifiedRoad = toSimplifiedChinese(result.road || '');
+        
+        console.log('获取到位置信息(简体):', simplifiedAddr);
+        localStorage.setItem('locationCache', JSON.stringify({
+            fullAddress: simplifiedAddr,
+            city: simplifiedCity,
+            district: simplifiedDistrict,
+            road: simplifiedRoad,
+            timestamp: Date.now()
+        }));
+    }
+}
+
+// 获取缓存的位置信息（格式：城市-区-街道）
+function getCachedLocation() {
+    var cache = localStorage.getItem('locationCache');
+    if (cache) {
+        try {
+            var data = JSON.parse(cache);
+            // 缓存有效期24小时
+            if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+                // 格式：城市-区-街道
+                var address = '';
+                if (data.city) address = data.city;
+                if (data.district && data.district !== data.city) address += '-' + data.district;
+                if (data.road) address += '-' + data.road;
+                return address;
+            }
+        } catch (e) {}
+    }
+    return null;
+}
+
+// 分享主函数
+function shareAction() {
+    // 显示加载动画
+    showShareLoading();
+    
+    // 延迟一下确保加载动画显示
+    setTimeout(function() {
+        // 获取当前日期时间
+        var now = new Date();
+        var dateTime = now.getFullYear() + '-' + 
+            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(now.getDate()).padStart(2, '0') + ' ' + 
+            String(now.getHours()).padStart(2, '0') + ':' + 
+            String(now.getMinutes()).padStart(2, '0') + ':' + 
+            String(now.getSeconds()).padStart(2, '0');
+        
+        // 优先使用缓存的位置信息
+        var cachedLocation = getCachedLocation();
+        if (cachedLocation) {
+            UpdateViewMessageBox(dateTime + ' ' + cachedLocation);
+            hideShareLoading();
+            doGenerateShareImage();
+        } else {
+            // 没有缓存，使用IP定位
+            fetchIpLocation(dateTime);
+        }
+    }, 300);
+}
+
+// 显示分享加载动画
+function showShareLoading() {
+    var existing = document.getElementById('shareLoadingOverlay');
+    if (existing) existing.remove();
+    
+    var overlay = document.createElement('div');
+    overlay.id = 'shareLoadingOverlay';
+    overlay.className = 'share-loading-overlay';
+    
+    var modal = document.createElement('div');
+    modal.className = 'share-loading-modal';
+    
+    var spinner = document.createElement('div');
+    spinner.className = 'share-loading-spinner';
+    
+    var text = document.createElement('div');
+    text.className = 'share-loading-text';
+    text.textContent = '正在生成分享图...';
+    
+    modal.appendChild(spinner);
+    modal.appendChild(text);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+// 关闭分享加载动画
+function hideShareLoading() {
+    var overlay = document.getElementById('shareLoadingOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// 逆地理编码：根据经纬度获取详细地址
+function fetchReverseGeocode(lat, lon, dateTime) {
+    // 使用 OpenStreetMap Nominatim API
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() {
+        controller.abort();
+    }, 8000); // 8秒超时
+    
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon + '&zoom=18&addressdetails=1', { signal: controller.signal })
+        .then(function(response) { 
+            clearTimeout(timeoutId);
+            return response.json(); 
+        })
+        .then(function(data) {
+            var address = '';
+            if (data.address) {
+                var addr = data.address;
+                console.log('Address data:', addr);
+                
+                // 按优先级获取城市/区域
+                var city = addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state_district || '';
+                var state = addr.state || addr.province || addr.country || '';
+                var country = addr.country || '';
+                var road = addr.road || '';
+                var house = addr.house_number || '';
+                
+                // 组合地址：城市 + 省份/国家 + 街道 + 门牌
+                if (city) address = city;
+                if (state && state !== city) address += ' ' + state;
+                if (country && country !== state && country !== city) address += ' ' + country;
+                if (house) address += ' ' + house;
+                if (road) address += ' ' + road;
+            }
+            if (address) {
+                UpdateViewMessageBox(dateTime + ' ' + address);
+            } else {
+                UpdateViewMessageBox(dateTime + ' ' + lat.toFixed(4) + ' ' + lon.toFixed(4));
+            }
+            hideShareLoading();
+            doGenerateShareImage();
+        })
+        .catch(function(err) {
+            clearTimeout(timeoutId);
+            // 超时或失败则显示坐标
+            UpdateViewMessageBox(dateTime + ' ' + lat.toFixed(4) + ' ' + lon.toFixed(4));
+            hideShareLoading();
+            doGenerateShareImage();
+        });
+}
+
+// IP定位
+function fetchIpLocation(dateTime) {
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() {
+        controller.abort();
+    }, 5000); // 5秒超时
+    
+    fetch('https://ipapi.co/json/', { signal: controller.signal })
+        .then(function(response) { 
+            clearTimeout(timeoutId);
+            return response.json(); 
+        })
+        .then(function(data) {
+            if (data.city || data.region || data.country_name) {
+                var location = (data.city || data.region || '') + ' ' + (data.country_name || '');
+                UpdateViewMessageBox(dateTime + ' ' + location.trim());
+            } else {
+                UpdateViewMessageBox(dateTime);
+            }
+            hideShareLoading();
+            doGenerateShareImage();
+        })
+        .catch(function() {
+            clearTimeout(timeoutId);
+            UpdateViewMessageBox(dateTime);
+            hideShareLoading();
+            doGenerateShareImage();
+        });
+}
+
+// 生成并分享截图
+function doGenerateShareImage() {
+    generateScreenshot(document.body).then(function(canvas) {
+        var dataUrl = canvas.toDataURL('image/png');
+
+        // 根据环境选择分享方式
+        if (isWeChat()) {
+            showSharePreview(dataUrl, '微信');
+        } else if (isQQ()) {
+            showSharePreview(dataUrl, 'QQ');
+        } else if (supportNavigatorShare()) {
+            canvas.toBlob(function(blob) {
+                var file = new File([blob], 'huapai-score.png', { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: '花牌记分器',
+                        text: '当前得分情况'
+                    }).then(function() {
+                        UpdateViewMessageBox("分享成功！");
+                    }).catch(function(err) {
+                        if (err.name !== 'AbortError') {
+                            console.log('分享失败:', err);
+                            showSharePreview(dataUrl, '系统');
+                        }
+                    });
+                } else {
+                    showSharePreview(dataUrl, '系统');
+                }
+            }, 'image/png');
+        } else {
+            showSharePreview(dataUrl, 'PC');
+        }
+    }).catch(function(err) {
+        console.error('截图失败:', err);
+        UpdateViewMessageBox("截图失败，请重试");
+    });
 }
